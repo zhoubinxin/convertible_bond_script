@@ -1,5 +1,4 @@
 """
-使用文档
 在calculate_median函数中修改转换价值范围
 
 Author：binxin
@@ -42,8 +41,8 @@ def save_to_excel(file_name, str_date, premium):
 
 # 计算中位数
 def calculate_median(data):
-    max_value = 101
-    min_value = 99
+    max_value = 100
+    min_value = 80
     float_values = []
 
     data_f022 = data['p00868_f022']
@@ -56,7 +55,7 @@ def calculate_median(data):
         f027_value = float(f027)
         f022_value = float(f022)
 
-        if min_value <= f027_value <= max_value:
+        if min_value < f027_value <= max_value:
             float_values.append(f022_value)
 
     return np.median(float_values) if float_values else None
