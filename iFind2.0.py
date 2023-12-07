@@ -23,6 +23,7 @@ def login(username, password):
 def get_data(edate):
     get_str = 'edate=' + edate + ';zqlx=全部'
     data_p00868 = THS_DR('p00868', get_str, 'p00868_f027:Y,p00868_f022:Y', 'format:list')
+    print(data_p00868)
     return data_p00868
 
 
@@ -41,8 +42,8 @@ def save_to_excel(file_name, str_date, premium):
 
 # 计算中位数
 def calculate_median(data):
-    max_value = 100
-    min_value = 80
+    max_value = 120
+    min_value = 100
     float_values = []
 
     data_f022 = data['p00868_f022']
@@ -90,21 +91,21 @@ def main():
     login(username, password)
 
     # 获取本日数据
-    today_data = get_today_data()
-    if today_data.data is not None:
-        today_median = calculate_median(today_data.data[0]['table'])
-        if today_median is not None:
-            save_to_excel("转股溢价率记录(转换价值).xlsx", datetime.date.today().strftime("%Y/%m/%d"), today_median)
+    # today_data = get_today_data()
+    # if today_data.data is not None:
+    #     today_median = calculate_median(today_data.data[0]['table'])
+    #     if today_median is not None:
+    #         save_to_excel("转股溢价率记录(转换价值).xlsx", datetime.date.today().strftime("%Y/%m/%d"), today_median)
 
     # 获取区间时间内的数据
-    # start_date = datetime.date(2023, 11, 1)
-    # end_date = datetime.date(2023, 11, 18)
-    # interval_data = get_interval_data(start_date, end_date)
-    #
-    # for date, data in interval_data:
-    #     median_value = calculate_median(data.data[0]['table'])
-    #     if median_value is not None:
-    #         save_to_excel("转股溢价率记录(转换价值).xlsx", date, median_value)
+    start_date = datetime.date(2018, 1, 1)
+    end_date = datetime.date(2023, 11, 30)
+    interval_data = get_interval_data(start_date, end_date)
+
+    for date, data in interval_data:
+        median_value = calculate_median(data.data[0]['table'])
+        if median_value is not None:
+            save_to_excel("转股溢价率记录(100-120).xlsx", date, median_value)
 
 
 if __name__ == '__main__':

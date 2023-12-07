@@ -70,9 +70,11 @@ def getmedian(data):
 
 def getData(edate):
     getstr = 'edate=' + edate + ';zqlx=全部'
+    print(getstr)
     # 可转债行情,输入参数:截至日期(edate)、债券类型(zqlx)-iFinD数据接口
-    data_p00868 = THS_DR('p00868', getstr, 'p00868_f022:Y', 'format:list')
-
+    data_p00868 = THS_DR('p00868','edate=20231206;zqlx=全部','jydm:Y,jydm_mc:Y,p00868_f027:Y,p00868_f022:Y','format:list')
+    print(type(data_p00868))
+    print(data_p00868.data)
     # print(data_p00868.data[0]['table']['p00868_f022'])
     return data_p00868
 
@@ -81,27 +83,28 @@ def main():
     # 登录函数
     thslogindemo()
 
-    for year in range(2017, 2018):
-        for month in range(3, 13):
-            print(f"{year}年{month}月")
-            for day in range(1, 32):
-                edate = f"{year:04d}{month:02d}{day:02d}"
-                date = f"{year:04d}/{month:02d}/{day:02d}"
-
-                zgyjl = getData(edate)
-
-                if type(zgyjl.data) is not NoneType:
-                    zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
-
-                    save_to_excel(date, zgyjl_median)
-
-    # edate = '20170229'
-    # date = '2021/02/29'
-    # zgyjl = getData(edate)
-    # if type(zgyjl.data) is not NoneType:
-    #     zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
+    # for year in range(2017, 2018):
+    #     for month in range(3, 13):
+    #         print(f"{year}年{month}月")
+    #         for day in range(1, 32):
+    #             edate = f"{year:04d}{month:02d}{day:02d}"
+    #             date = f"{year:04d}/{month:02d}/{day:02d}"
     #
-    #     save_to_excel(date, zgyjl_median)
+    #             zgyjl = getData(edate)
+    #
+    #             if type(zgyjl.data) is not NoneType:
+    #                 zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
+    #
+    #                 save_to_excel(date, zgyjl_median)
+
+    edate = '20170229'
+    date = '2021/02/29'
+    zgyjl = getData(edate)
+    print(type(zgyjl.data))
+    if type(zgyjl.data) is not NoneType:
+        zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
+
+        save_to_excel(date, zgyjl_median)
 
 
 if __name__ == '__main__':

@@ -73,27 +73,28 @@ def main():
     # 登录函数
     thslogindemo()
 
-    for year in range(2017, 2018):
-        for month in range(3, 13):
-            print(f"{year}年{month}月")
-            for day in range(1, 32):
-                edate = f"{year:04d}{month:02d}{day:02d}"
-                date = f"{year:04d}/{month:02d}/{day:02d}"
+    # for year in range(2017, 2018):
+    #     for month in range(3, 13):
+    #         print(f"{year}年{month}月")
+    #         for day in range(1, 32):
+    #             edate = f"{year:04d}{month:02d}{day:02d}"
+    #             date = f"{year:04d}/{month:02d}/{day:02d}"
 
-                zgyjl = getData(edate)
+    #             zgyjl = getData(edate)
 
-                if type(zgyjl.data) is not NoneType:
-                    zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
+    #             if type(zgyjl.data) is not NoneType:
+    #                 zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
 
-                    save_to_excel(date, zgyjl_median)
+    #                 save_to_excel(date, zgyjl_median)
 
-    # edate = '20170229'
-    # date = '2021/02/29'
-    # zgyjl = getData(edate)
-    # if type(zgyjl.data) is not NoneType:
-    #     zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
-    #
-    #     save_to_excel(date, zgyjl_median)
+    edate = '20170229'
+    date = '2021/02/29'
+    zgyjl = getData(edate)
+    print(type(zgyjl.data))
+    if type(zgyjl.data) is not NoneType:
+        zgyjl_median = getmedian(zgyjl.data[0]['table']['p00868_f022'])
+    
+        save_to_excel(date, zgyjl_median)
 
 
 if __name__ == '__main__':
