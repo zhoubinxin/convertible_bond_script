@@ -23,8 +23,8 @@ dllock = Lock()  # 此变量用来控制实时行情推送中落数据到本地�
 
 # 登录函数
 def thslogindemo():
-    # 输入用户的帐号和密码
-    thsLogin = THS_iFinDLogin("zyzqsx112", "935b43")
+    # 输入用户的账号和密码
+    thsLogin = THS_iFinDLogin("账号", "密码")
     print(thsLogin)
     if thsLogin != 0:
         print('登录失败')

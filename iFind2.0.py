@@ -86,8 +86,8 @@ def get_interval_data(start_date, end_date):
 
 # 主函数
 def main():
-    username = "zyzqsx112"
-    password = "935b43"
+    username = "账号"
+    password = "密码"
     login(username, password)
 
     # 获取本日数据
