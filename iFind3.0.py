@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from iFinDPy import *
 import datetime
+import time
 
 
 # 登录函数
@@ -38,15 +39,21 @@ def get_bond(jydm, date):
 
 # 保存数据到Excel
 def save_to_excel(file_name, str_date, premium):
-    if not os.path.exists(file_name):
-        data = {"日期": [str_date], "转股溢价率%": [premium]}
-        df = pd.DataFrame(data)
-    else:
-        df = pd.read_excel(file_name)
-        new_data = pd.DataFrame({"日期": [str_date], "转股溢价率%": [premium]})
-        df = pd.concat([df, new_data], ignore_index=True)
+    while True:
+        try:
+            if not os.path.exists(file_name):
+                data = {"日期": [str_date], "转股溢价率%": [premium]}
+                df = pd.DataFrame(data)
+            else:
+                df = pd.read_excel(file_name)
+                new_data = pd.DataFrame({"日期": [str_date], "转股溢价率%": [premium]})
+                df = pd.concat([df, new_data], ignore_index=True)
 
-    df.to_excel(file_name, index=False)
+            df.to_excel(file_name, index=False)
+            break  # 如果成功写入，跳出循环
+        except PermissionError:
+            print(f"请关闭文件 '{file_name}'")
+            time.sleep(5)
 
 
 # 计算中位数
@@ -105,8 +112,8 @@ def main():
     password = "088088"
     login(username, password)
 
-    start_date = datetime.date(2023, 12, 8)
-    end_date = datetime.date(2023, 12, 8)
+    start_date = datetime.date(2023, 2, 2)
+    end_date = datetime.date(2023, 2, 2)
     interval_data = get_interval_data(start_date, end_date)
 
     for date, data in interval_data:
