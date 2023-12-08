@@ -38,7 +38,6 @@ import numpy as np
 import pandas as pd
 from iFinDPy import *
 import datetime
-import time
 
 
 # 登录函数
@@ -53,7 +52,7 @@ def login(username, password):
 # 获取数据
 def get_data(edate):
     get_str = 'edate=' + edate + ';zqlx=全部'
-    # jydm交易代码 f027转股价值 f022转股溢价率
+    # jydm交易代码 f027转换价值 f022转股溢价率
     data_p00868 = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
     if data_p00868.data is None:
         print(data_p00868.errmsg)
@@ -75,37 +74,27 @@ def get_bond(jydm, date):
 
 # 保存数据到Excel
 def save_to_excel(file_name, str_date, premium):
-    while True:
-        try:
-            if not os.path.exists(file_name):
-                data = {"日期": [str_date], "转股溢价率%": [premium]}
-                df = pd.DataFrame(data)
-            else:
-                df = pd.read_excel(file_name)
-                new_data = pd.DataFrame({"日期": [str_date], "转股溢价率%": [premium]})
-                df = pd.concat([df, new_data], ignore_index=True)
+    if not os.path.exists(file_name):
+        data = {"日期": [str_date], "转股溢价率%": [premium]}
+        df = pd.DataFrame(data)
+    else:
+        df = pd.read_excel(file_name)
+        new_data = pd.DataFrame({"日期": [str_date], "转股溢价率%": [premium]})
+        df = pd.concat([df, new_data], ignore_index=True)
 
-            df.to_excel(file_name, index=False)
-            break  # 如果成功写入，跳出循环
-        except PermissionError:
-            print(f"请关闭文件 '{file_name}'")
-            time.sleep(5)
+    df.to_excel(file_name, index=False)
 
 
 # 计算中位数
 def calculate_median(data, date):
-    # 转股价值
-    consider_value = True
     max_value = 100
     min_value = 80
 
     # 债券余额范围
-    consider_balance = True
     max_balance = 100
     min_balance = 5
 
     # 债券评级
-    consider_issue = True
     issue = "AA+"
 
     float_values = []
@@ -122,11 +111,7 @@ def calculate_median(data, date):
         f027_value = float(f027)
         f022_value = float(f022)
 
-        value_condition = (not consider_value) or (min_value < f027_value <= max_value)
-        balance_condition = (not consider_balance) or (min_balance < data_balance[0])
-        issue_condition = (not consider_issue) or (data_issue == issue)
-
-        if value_condition and balance_condition and issue_condition:
+        if min_value < f027_value <= max_value and min_balance < data_balance[0] and data_issue is issue:
             float_values.append(f022_value)
 
     return np.median(float_values) if float_values else None
@@ -150,12 +135,14 @@ def get_interval_data(start_date, end_date):
 
 # 主函数
 def main():
-    username = "账号"
-    password = "密码"
+    # username = "账号"
+    # password = "密码"
+    username = "ztzqz088"
+    password = "088088"
     login(username, password)
 
-    start_date = datetime.date(2023, 2, 2)
-    end_date = datetime.date(2023, 2, 2)
+    start_date = datetime.date(2023, 12, 8)
+    end_date = datetime.date(2023, 12, 8)
     interval_data = get_interval_data(start_date, end_date)
 
     for date, data in interval_data:
@@ -195,24 +182,31 @@ pip install -i https://mirrors.aliyun.com/pypi/simple pandas
 ## 程序相关
 
 1. 如果仅需要一天数据，需要将`main()`函数中的`start_date`和`end_date`设置为同一天
-2. `calculate_median()`函数参数配置
-	1. `consider_value`、`consider_balance`、`consider_issue`为`True`时表示使用对应的参数用于筛选转股溢价率
-	2. 修改筛选范围
-	```python
-	# 转股价值
-    consider_value = True
-    max_value = 100
-    min_value = 80
-
-    # 债券余额范围
-    consider_balance = True
-    max_balance = 100
-    min_balance = 5
-
-    # 债券评级
-    consider_issue = True
-    issue = "AA+"
+2. 修改转换价值范围  
+	1. 在`calculate_median()`函数中修改`max_value`和`min_value`的值  
+	2. 修改`min_value < f027_value <= max_value`部分选择是否保留边界 
+	3. 例：(100，120]  
+	```python  
+	def calculate_median(data):  
+		max_value = 120  
+		min_value = 100  
+		float_values = []  
+  
+		data_f022 = data['p00868_f022']  
+		data_f027 = data['p00868_f027']  
+  
+		for f027, f022 in zip(data_f027, data_f022):  
+			if '--' in f027 or '--' in f022:  
+			continue  
+  
+		f027_value = float(f027)  
+		f022_value = float(f022)  
+  
+		if min_value < f027_value <= max_value:  
+			float_values.append(f022_value)  
+  
+		return np.median(float_values) if float_values else None  
 	```
 	3. 修改筛选边界
 		1. 转股价值：value_condition = (not consider_value) or (**min_value < f027_value <= max_value**)
-		2.  债券余额：balance_condition = (not consider_balance) or (**min_balance < data_balance[0]**)
+		2. 债券余额：balance_condition = (not consider_balance) or (**min_balance < data_balance[0]**)
