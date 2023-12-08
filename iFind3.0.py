@@ -42,7 +42,7 @@ def get_bond(jydm, date):
 
 # 保存数据到Excel
 def save_to_excel(file_name, str_date, premium):
-    print('数据保存中...')
+    print(f'数据保存中{str_date}')
     while True:
         try:
             if not os.path.exists(file_name):
@@ -128,8 +128,8 @@ def main():
     password = "088088"
     login(username, password)
 
-    start_date = datetime.date(2023, 1, 1)
-    end_date = datetime.date(2023, 11, 30)
+    start_date = datetime.date(2023, 5, 9)
+    end_date = datetime.date(2023, 5, 9)
     interval_data = get_interval_data(start_date, end_date)
 
     for date, data in interval_data:
