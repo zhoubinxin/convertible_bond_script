@@ -39,6 +39,7 @@ def get_bond(jydm, date):
 
 # 保存数据到Excel
 def save_to_excel(file_name, str_date, premium):
+    print('数据保存中...')
     while True:
         try:
             if not os.path.exists(file_name):
@@ -96,7 +97,7 @@ def calculate_median(data, date):
     return np.median(float_values) if float_values else None
 
 
-# 获取数据 - 区间
+# 获取数据
 def get_interval_data(start_date, end_date):
     delta = datetime.timedelta(days=1)
     data_list = []
