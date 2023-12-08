@@ -1,7 +1,3 @@
-"""
-Author：binxin
-Date：2023/12/6 16:16
-"""
 import numpy as np
 import pandas as pd
 from iFinDPy import *
@@ -20,23 +16,24 @@ def login(username, password):
 # 获取数据
 def get_data(edate):
     get_str = 'edate=' + edate + ';zqlx=全部'
-    # jydm交易代码
-    # f027转换价值
-    # f022转股溢价率
+    # jydm交易代码 f027转换价值 f022转股溢价率
     data_p00868 = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
-    # print(data_p00868.data)
     if data_p00868.data is None:
         print(data_p00868.errmsg)
+
     return data_p00868
 
 
-# 获取债券余额数据
-def get_balance(jydm, date):
-    data = THS_DS(jydm, 'ths_bond_balance_bond', '', '', date, date, 'format:list')
+# 获取债券余额数据和债券评级
+def get_bond(jydm, date):
+    # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
+    data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', date, date, 'format:list')
+
     if data.data is None:
         print(data.errmsg)
+        return None, None
 
-    return data.data[0]['table']['ths_bond_balance_bond']
+    return data.data[0]['table']['ths_bond_balance_cbond'], data.data[0]['table']['ths_issue_credit_rating_cbond']
 
 
 # 保存数据到Excel
@@ -57,8 +54,12 @@ def calculate_median(data, date):
     max_value = 100
     min_value = 80
 
+    # 债券余额范围
     max_balance = 100
     min_balance = 5
+
+    # 债券评级
+    issue = "AA+"
 
     float_values = []
 
@@ -70,12 +71,11 @@ def calculate_median(data, date):
         if '--' in f027 or '--' in f022:
             continue
 
-        data_balance = get_balance(jydm, date)
-        print(data_balance)
+        data_balance, data_issue = get_bond(jydm, date)
         f027_value = float(f027)
         f022_value = float(f022)
 
-        if min_value < f027_value <= max_value and min_balance < data_balance[0]:
+        if min_value < f027_value <= max_value and min_balance < data_balance[0] and data_issue is issue:
             float_values.append(f022_value)
 
     return np.median(float_values) if float_values else None
@@ -99,8 +99,10 @@ def get_interval_data(start_date, end_date):
 
 # 主函数
 def main():
-    username = "账号"
-    password = "密码"
+    # username = "账号"
+    # password = "密码"
+    username = "ztzqz088"
+    password = "088088"
     login(username, password)
 
     start_date = datetime.date(2023, 12, 8)
