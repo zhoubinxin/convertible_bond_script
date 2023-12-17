@@ -122,8 +122,8 @@ def get_interval_data(start_date, end_date):
 
 # 主函数
 def main():
-    # username = "账号"
-    # password = "密码"
+    username = "账号"
+    password = "密码"
     login(username, password)
 
     start_date = datetime.date(2023, 5, 9)
