@@ -1,5 +1,5 @@
 ---
-title: 同花顺转股溢价率中位数获取
+title: 转股溢价率中位数获取
 author: binxin
 ---
 ## Python环境配置
