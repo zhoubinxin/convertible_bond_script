@@ -17,7 +17,7 @@ def login(username, password):
 # 获取数据
 def get_data(edate):
     get_str = 'edate=' + edate + ';zqlx=全部'
-    # jydm交易代码 f027转股价值 f022转股溢价率
+    # jydm交易代码 f027转换价值 f022转股溢价率
     data_p00868 = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
     # print(data_p00868)
     if data_p00868.data is None:
@@ -62,7 +62,7 @@ def save_to_excel(file_name, str_date, premium):
 
 # 计算中位数
 def calculate_median(data, date):
-    # 转股价值
+    # 转换价值
     consider_value = True
     max_value = 120
     min_value = 100
@@ -101,7 +101,7 @@ def calculate_median(data, date):
         if value_condition and balance_condition and issue_condition:
             float_values.append(f022_value)
 
-    return np.median(float_values) if float_values else None
+    return np.median(float_values) if float_values else ""
 
 
 # 获取数据
