@@ -2,5 +2,4 @@
 /密码
 *.xlsx
 *.json
-/Main_iFind.py
-/Main_Wind.py
+/Main_*.py
