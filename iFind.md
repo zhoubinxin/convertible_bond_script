@@ -1,7 +1,6 @@
----
-title: 转股溢价率中位数获取
-author: binxin
----
+
+# iFind转股溢价率中位数获取
+
 ## Python环境配置
 
 详细安装步骤参考[Python安装与环境配置超详细保姆级教程](https://blog.csdn.net/m0_57081622/article/details/127180996)
