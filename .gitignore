@@ -3,3 +3,4 @@
 *.xlsx
 *.json
 /Main_*.py
+/.pkl
