@@ -1,6 +1,5 @@
 .idea/
-/密码
+/Test/密码
 *.xlsx
 *.json
-/Main_*.py
-/credentials.pkl
+/Test/
