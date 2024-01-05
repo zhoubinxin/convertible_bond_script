@@ -28,8 +28,7 @@ def get_data(edate):
 
 # 获取债券余额数据和债券评级
 def get_bond(jydm, date):
-    print("------------------债券余额数据和债券评级------------------")
-    print(date)
+    print(date + jydm)
     # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
     data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', date, date, 'format:list')
 
@@ -37,7 +36,7 @@ def get_bond(jydm, date):
         print(data.errmsg)
         return None, None
 
-    return data.data[0]['table']['ths_bond_balance_cbond'][0], data.data[0]['table']['ths_issue_credit_rating_cbond']
+    return data.data[0]['table']['ths_bond_balance_cbond'], data.data[0]['table']['ths_issue_credit_rating_cbond']
 
 
 # 保存数据到Excel
@@ -63,13 +62,13 @@ def save_to_excel(file_name, str_date, premium):
 # 计算中位数
 def calculate_median(data, date):
     # 转换价值
-    consider_value = True
+    consider_value = False
     max_value = 120
     min_value = 100
 
     # 债券余额范围
-    consider_balance = False
-    max_balance = 100
+    consider_balance = True
+    max_balance = 300000000
     min_balance = 5
 
     # 债券评级
@@ -90,12 +89,20 @@ def calculate_median(data, date):
         data_issue = None
         if consider_balance or consider_issue:
             data_balance, data_issue = get_bond(jydm, date)
+            if data_balance is None:
+                continue
+            if len(data_balance) == 0:
+                continue
+            else:
+                data_balance = data_balance[0]
+
+            data_issue = data_issue[0]
 
         f027_value = float(f027)
         f022_value = float(f022)
 
         value_condition = (not consider_value) or (min_value < f027_value <= max_value)
-        balance_condition = (not consider_balance) or (min_balance < data_balance)
+        balance_condition = (not consider_balance) or (data_balance < max_balance)
         issue_condition = (not consider_issue) or (data_issue == issue)
 
         if value_condition and balance_condition and issue_condition:
@@ -122,17 +129,16 @@ def get_interval_data(start_date, end_date):
 
 # 主函数
 def main():
-    username = "账号"
-    password = "密码"
+    username = ""
+    password = ""
     login(username, password)
 
-    start_date = datetime.date(2023, 5, 9)
-    end_date = datetime.date(2023, 5, 9)
+    start_date = datetime.date(2018, 1, 2)
+    end_date = datetime.date(2018, 1, 2)
     interval_data = get_interval_data(start_date, end_date)
 
     for date, data in interval_data:
         median_value = calculate_median(data.data[0]['table'], date)
-        # print(median_value)
         if median_value is not None:
             save_to_excel("转股溢价率记录.xlsx", date, median_value)
 

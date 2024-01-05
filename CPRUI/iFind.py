@@ -16,7 +16,6 @@ def get_data(edate):
     get_str = 'edate=' + edate + ';zqlx=全部'
     # jydm交易代码 f027转换价值 f022转股溢价率
     data_p00868 = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
-    # print(data_p00868)
     if data_p00868.data is None:
         print(data_p00868.errmsg)
 
@@ -25,8 +24,7 @@ def get_data(edate):
 
 # 获取债券余额数据和债券评级
 def get_bond(jydm, date):
-    print("------------------债券余额数据和债券评级------------------")
-    print(date)
+    print(date+jydm)
     # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
     data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', date, date, 'format:list')
 
@@ -34,7 +32,7 @@ def get_bond(jydm, date):
         print(data.errmsg)
         return None, None
 
-    return data.data[0]['table']['ths_bond_balance_cbond'][0], data.data[0]['table']['ths_issue_credit_rating_cbond']
+    return data.data[0]['table']['ths_bond_balance_cbond'], data.data[0]['table']['ths_issue_credit_rating_cbond']
 
 
 # 保存数据到Excel
@@ -81,6 +79,14 @@ def calculate_median(data, date, userdata):
         data_issue = None
         if userdata['consider_balance'] or userdata['consider_issue']:
             data_balance, data_issue = get_bond(jydm, date)
+            if data_balance is None:
+                continue
+            if len(data_balance) == 0:
+                continue
+            else:
+                data_balance = data_balance[0]
+
+            data_issue = data_issue[0]
 
         f027_value = float(f027)
         f022_value = float(f022)
