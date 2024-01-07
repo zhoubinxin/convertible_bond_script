@@ -5,6 +5,7 @@ import datetime
 import time
 import json
 
+
 # 登录函数
 def login(username, password):
     thsLogin = THS_iFinDLogin(username, password)
@@ -28,7 +29,7 @@ def get_data(edate):
 
 # 获取债券余额数据和债券评级
 def get_bond(jydm, date):
-    print(date + jydm)
+    print(f'{date} 债券余额数据和债券评级')
     # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
     data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', date, date, 'format:list')
 
@@ -36,7 +37,10 @@ def get_bond(jydm, date):
         print(data.errmsg)
         return None, None
 
-    return data.data[0]['table']['ths_bond_balance_cbond'], data.data[0]['table']['ths_issue_credit_rating_cbond']
+    data_balances = [item['table']['ths_bond_balance_cbond'][0] for item in data.data]
+    data_issues = [item['table']['ths_issue_credit_rating_cbond'][0] for item in data.data]
+
+    return data_balances, data_issues
 
 
 # 保存数据到Excel
@@ -81,22 +85,20 @@ def calculate_median(data, date):
     data_f022 = data['p00868_f022']
     data_f027 = data['p00868_f027']
 
-    for jydm, f027, f022 in zip(data_jydm, data_f027, data_f022):
+    if consider_balance or consider_issue:
+        data_balances, data_issues = get_bond(data_jydm, date)
+
+    for i in range(len(data_jydm)):
+        f027 = data_f027[i]
+        f022 = data_f022[i]
         if '--' in f027 or '--' in f022:
             continue
 
-        data_balance = None
-        data_issue = None
         if consider_balance or consider_issue:
-            data_balance, data_issue = get_bond(jydm, date)
+            data_balance = data_balances[i]
+            data_issue = data_issues[i]
             if data_balance is None:
                 continue
-            if len(data_balance) == 0:
-                continue
-            else:
-                data_balance = data_balance[0]
-
-            data_issue = data_issue[0]
 
         f027_value = float(f027)
         f022_value = float(f022)
