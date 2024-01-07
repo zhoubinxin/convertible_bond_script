@@ -15,23 +15,12 @@ def login(username, password):
         print('登录成功')
 
 
-# 获取数据
-def get_data(edate):
-    get_str = 'edate=' + edate + ';zqlx=全部'
-    # jydm交易代码 f027转换价值 f022转股溢价率
-    data_p00868 = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
-    # print(data_p00868)
-    if data_p00868.data is None:
-        print(data_p00868.errmsg)
-
-    return data_p00868
-
-
 # 获取债券余额数据和债券评级
-def get_bond(jydm, date):
-    print(f'{date} 债券余额数据和债券评级')
+def get_bond(jydm, jy_date):
+    print(f'{jy_date} 债券余额数据和债券评级')
     # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
-    data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', date, date, 'format:list')
+    data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', jy_date, jy_date,
+                  'format:list')
 
     if data.data is None:
         print(data.errmsg)
@@ -64,15 +53,15 @@ def save_to_excel(file_name, str_date, premium):
 
 
 # 计算中位数
-def calculate_median(data, date):
+def calculate_median(data, jy_date):
     # 转换价值
     consider_value = False
     max_value = 120
     min_value = 100
 
-    # 债券余额范围
+    # 债券余额范围，单位为亿
     consider_balance = True
-    max_balance = 300000000
+    max_balance = 3
     min_balance = 5
 
     # 债券评级
@@ -85,8 +74,10 @@ def calculate_median(data, date):
     data_f022 = data['p00868_f022']
     data_f027 = data['p00868_f027']
 
+    data_balances = data_issues = data_balance = data_issue = None
+
     if consider_balance or consider_issue:
-        data_balances, data_issues = get_bond(data_jydm, date)
+        data_balances, data_issues = get_bond(data_jydm, jy_date)
 
     for i in range(len(data_jydm)):
         f027 = data_f027[i]
@@ -113,12 +104,12 @@ def calculate_median(data, date):
     return np.median(float_values) if float_values else ""
 
 
-def file_exist(date):
+def file_exist(jy_date):
     # 文件夹路径
     directory_path = 'data'
 
     # 文件名
-    file_to_check = f'{date}.json'
+    file_to_check = f'{jy_date}.json'
 
     # 完整的文件路径
     file_path = os.path.join(directory_path, file_to_check)
@@ -135,8 +126,8 @@ def file_exist(date):
         return False
 
 
-def save_to_json(date, data):
-    json_file_path = f'data/{date}.json'
+def save_to_json(jy_date, data):
+    json_file_path = f'data/{jy_date}.json'
     # 将数据列表保存为JSON文件
     with open(json_file_path, 'w') as json_file:
         json.dump(data, json_file, indent=2)
@@ -145,12 +136,11 @@ def save_to_json(date, data):
 
 
 # 获取数据
-def get_interval_data(start_date, end_date):
+def get_data_basics(start_date, end_date):
     delta = datetime.timedelta(days=1)
     data_list = []
-
+    print("基本数据获取")
     while start_date <= end_date:
-        print(start_date)
         edate = start_date.strftime("%Y%m%d")
         if file_exist(edate):
             # 指定JSON文件路径
@@ -162,8 +152,12 @@ def get_interval_data(start_date, end_date):
 
             data_list.append((start_date.strftime("%Y-%m-%d"), data))
         else:
-            data = get_data(edate)
-            if data.data is not None:
+            get_str = 'edate=' + edate + ';zqlx=全部'
+            # jydm交易代码 f027转换价值 f022转股溢价率
+            data = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
+            if data.data is None:
+                print(data.errmsg)
+            else:
                 save_to_json(edate, data.data)
                 data_list.append((start_date.strftime("%Y-%m-%d"), data.data))
         start_date += delta
@@ -179,13 +173,12 @@ def main():
 
     start_date = datetime.date(2018, 9, 10)
     end_date = datetime.date(2018, 9, 10)
-    interval_data = get_interval_data(start_date, end_date)
+    data_basics = get_data_basics(start_date, end_date)
 
-    for date, data in interval_data:
-        median_value = calculate_median(data[0]['table'], date)
-        # print(median_value)
+    for jy_date, data_basic in data_basics:
+        median_value = calculate_median(data_basic[0]['table'], jy_date)
         if median_value is not None:
-            save_to_excel("转股溢价率记录.xlsx", date, median_value)
+            save_to_excel("转股溢价率记录.xlsx", jy_date, median_value)
 
 
 if __name__ == '__main__':
