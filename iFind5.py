@@ -14,16 +14,9 @@ class FileHandler:
             os.makedirs(self.directory_path)
             print(f'创建文件夹 {self.directory_path}')
 
-    def file_exist(self, file_name):
-        # 完整的文件路径
-        file_path = os.path.join(self.directory_path, file_name)
-
-        # 判断文件是否存在
-        return os.path.exists(file_path)
-
     # 保存数据到Excel
     def save_to_excel(self, file_name, str_date, premium):
-        print(f'数据保存中{str_date}')
+        print(f'{str_date}数据保存中')
         while True:
             try:
                 if not os.path.exists(file_name):
@@ -59,22 +52,39 @@ class Ths:
             print('登录成功')
 
     # 获取债券余额数据和债券评级
-    def get_bond(self, jydm, ths_date):
+    def get_bond(self, jydm, ths_date, consider_balance, consider_issue):
         print(f'{ths_date} 债券余额数据和债券评级')
-        # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
-        data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', ths_date, ths_date,
-                      'format:list')
-
-        if data.data is None:
-            print(data.errmsg)
-            return None, None
-
         data_balances = []
         data_issues = []
 
-        for item in data.data:
-            data_balances.append(item['table']['ths_bond_balance_cbond'][0])
-            data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
+        # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
+        if consider_balance and consider_issue:
+            data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', ths_date, ths_date,
+                          'format:list')
+
+            if data.data is None:
+                print(data.errmsg)
+            else:
+                for item in data.data:
+                    data_balances.append(item['table']['ths_bond_balance_cbond'][0])
+                    data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
+        elif consider_balance:
+            data = THS_DS(jydm, 'ths_bond_balance_cbond', ',', '', ths_date, ths_date, 'format:list')
+
+            if data.data is None:
+                print(data.errmsg)
+            else:
+                for item in data.data:
+                    data_balances.append(item['table']['ths_bond_balance_cbond'][0])
+
+        elif consider_issue:
+            data = THS_DS(jydm, 'ths_issue_credit_rating_cbond', ',', '', ths_date, ths_date, 'format:list')
+
+            if data.data is None:
+                print(data.errmsg)
+            else:
+                for item in data.data:
+                    data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
 
         return data_balances, data_issues
 
@@ -86,9 +96,10 @@ class Ths:
         print("基本数据获取")
         while start_date <= end_date:
             edate = start_date.strftime("%Y%m%d")
-            if file_handler.file_exist(f'{edate}.json'):
+            json_file_path = f'data/{edate}.json'
+            if os.path.exists(json_file_path):
                 # 指定JSON文件路径
-                json_file_path = f'data/{edate}.json'
+
                 print(f'从文件{json_file_path}中读取数据')
                 # 从JSON文件读取数据
                 with open(json_file_path, 'r') as json_file:
@@ -133,10 +144,9 @@ class CPR:
         data_f022 = data['p00868_f022']
         data_f027 = data['p00868_f027']
 
-        data_balances = data_issues = data_balance = data_issue = None
+        data_balance = data_issue = None
 
-        if consider_balance or consider_issue:
-            data_balances, data_issues = ths.get_bond(data_jydm, ths_date)
+        data_balances, data_issues = ths.get_bond(data_jydm, ths_date, consider_balance, consider_issue)
 
         for i in range(len(data_jydm)):
             f027 = data_f027[i]
@@ -144,11 +154,21 @@ class CPR:
             if '--' in f027 or '--' in f022:
                 continue
 
-            if consider_balance or consider_issue:
-                data_balance = data_balances[i]
-                data_issue = data_issues[i]
-                if data_balance is None:
+            if consider_balance:
+                if len(data_balances) == 0:
                     continue
+                else:
+                    data_balance = data_balances[i]
+                    if data_balance is None:
+                        continue
+
+            if consider_issue:
+                if len(data_issues) == 0:
+                    continue
+                else:
+                    data_issue = data_issues[i]
+                    if data_issue is None:
+                        continue
 
             f027_value = float(f027)
             f022_value = float(f022)
