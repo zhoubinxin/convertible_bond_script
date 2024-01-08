@@ -22,20 +22,25 @@ class FileHandler:
         return os.path.exists(file_path)
 
 
-# 登录函数
-def login(username, password):
-    thsLogin = THS_iFinDLogin(username, password)
-    if thsLogin != 0:
-        print('登录失败')
-    else:
-        print('登录成功')
+class Ths:
+    def __init__(self):
+        pass
+
+    # 登录函数
+    @staticmethod
+    def login(username, password):
+        thsLogin = THS_iFinDLogin(username, password)
+        if thsLogin != 0:
+            print('登录失败')
+        else:
+            print('登录成功')
 
 
 # 获取债券余额数据和债券评级
-def get_bond(jydm, jy_date):
-    print(f'{jy_date} 债券余额数据和债券评级')
+def get_bond(jydm, ths_date):
+    print(f'{ths_date} 债券余额数据和债券评级')
     # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
-    data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', jy_date, jy_date,
+    data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', ths_date, ths_date,
                   'format:list')
 
     if data.data is None:
@@ -69,7 +74,7 @@ def save_to_excel(file_name, str_date, premium):
 
 
 # 计算中位数
-def calculate_median(data, jy_date):
+def calculate_median(data, ths_date):
     # 转换价值
     consider_value = False
     max_value = 120
@@ -93,7 +98,7 @@ def calculate_median(data, jy_date):
     data_balances = data_issues = data_balance = data_issue = None
 
     if consider_balance or consider_issue:
-        data_balances, data_issues = get_bond(data_jydm, jy_date)
+        data_balances, data_issues = get_bond(data_jydm, ths_date)
 
     for i in range(len(data_jydm)):
         f027 = data_f027[i]
@@ -120,12 +125,12 @@ def calculate_median(data, jy_date):
     return np.median(float_values) if float_values else ""
 
 
-def file_exist(jy_date):
+def file_exist(ths_date):
     # 文件夹路径
     directory_path = 'data'
 
     # 文件名
-    file_to_check = f'{jy_date}.json'
+    file_to_check = f'{ths_date}.json'
 
     # 完整的文件路径
     file_path = os.path.join(directory_path, file_to_check)
@@ -142,8 +147,8 @@ def file_exist(jy_date):
         return False
 
 
-def save_to_json(jy_date, data):
-    json_file_path = f'data/{jy_date}.json'
+def save_to_json(ths_date, data):
+    json_file_path = f'data/{ths_date}.json'
     # 将数据列表保存为JSON文件
     with open(json_file_path, 'w') as json_file:
         json.dump(data, json_file, indent=2)
@@ -184,18 +189,19 @@ def get_data_basics(start_date, end_date):
 
 # 主函数
 def main():
+    ths = Ths()
     username = ""
     password = ""
-    login(username, password)
+    ths.login(username, password)
 
     start_date = datetime.date(2018, 9, 10)
     end_date = datetime.date(2018, 9, 10)
     data_basics = get_data_basics(start_date, end_date)
 
-    for jy_date, data_basic in data_basics:
-        median_value = calculate_median(data_basic[0]['table'], jy_date)
+    for ths_date, data_basic in data_basics:
+        median_value = calculate_median(data_basic[0]['table'], ths_date)
         if median_value is not None:
-            save_to_excel("转股溢价率记录.xlsx", jy_date, median_value)
+            save_to_excel("转股溢价率记录.xlsx", ths_date, median_value)
 
 
 if __name__ == '__main__':
