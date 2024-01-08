@@ -6,6 +6,22 @@ import time
 import json
 
 
+class FileHandler:
+    def __init__(self):
+        self.directory_path = 'data'
+        # 判断目录是否存在，如果不存在则创建
+        if not os.path.exists(self.directory_path):
+            os.makedirs(self.directory_path)
+            print(f'创建文件夹 {self.directory_path}')
+
+    def file_exist(self, file_name):
+        # 完整的文件路径
+        file_path = os.path.join(self.directory_path, file_name)
+
+        # 判断文件是否存在
+        return os.path.exists(file_path)
+
+
 # 登录函数
 def login(username, password):
     thsLogin = THS_iFinDLogin(username, password)
@@ -137,12 +153,13 @@ def save_to_json(jy_date, data):
 
 # 获取数据
 def get_data_basics(start_date, end_date):
+    file_handler = FileHandler()
     delta = datetime.timedelta(days=1)
     data_list = []
     print("基本数据获取")
     while start_date <= end_date:
         edate = start_date.strftime("%Y%m%d")
-        if file_exist(edate):
+        if file_handler.file_exist(f'{edate}.json'):
             # 指定JSON文件路径
             json_file_path = f'data/{edate}.json'
             print(f'从文件{json_file_path}中读取数据')
