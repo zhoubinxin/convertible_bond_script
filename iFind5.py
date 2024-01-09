@@ -53,6 +53,7 @@ class Ths:
 
     # 获取债券余额数据和债券评级
     def get_bond(self, jydm, ths_date, consider_balance, consider_issue):
+        jydm = ', '.join(jydm)
         print(f'{ths_date} 债券余额数据和债券评级')
         data_balances = []
         data_issues = []
@@ -66,8 +67,29 @@ class Ths:
                 print(data.errmsg)
             else:
                 for item in data.data:
-                    data_balances.append(item['table']['ths_bond_balance_cbond'][0])
-                    data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
+                    if 'table' in item and isinstance(item['table'], dict) and 'ths_bond_balance_cbond' in item[
+                        'table']:
+                        if isinstance(item['table']['ths_bond_balance_cbond'], list) and len(
+                                item['table']['ths_bond_balance_cbond']) > 0:
+                            data_balances.append(item['table']['ths_bond_balance_cbond'][0])
+                        else:
+                            data_balances.append(None)
+                    else:
+
+                        data_balances.append(None)
+
+                    if 'table' in item and isinstance(item['table'], dict) and 'ths_issue_credit_rating_cbond' in item[
+                        'table']:
+                        if isinstance(item['table']['ths_issue_credit_rating_cbond'], list) and len(
+                                item['table']['ths_issue_credit_rating_cbond']) > 0:
+                            data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
+                        else:
+                            # 处理空列表的情况
+                            data_issues.append(None)
+                    else:
+                        # 处理缺少键或值不符合预期的情况
+                        data_issues.append(None)
+
         elif consider_balance:
             data = THS_DS(jydm, 'ths_bond_balance_cbond', ',', '', ths_date, ths_date, 'format:list')
 
@@ -75,8 +97,16 @@ class Ths:
                 print(data.errmsg)
             else:
                 for item in data.data:
-                    data_balances.append(item['table']['ths_bond_balance_cbond'][0])
+                    if 'table' in item and isinstance(item['table'], dict) and 'ths_bond_balance_cbond' in item[
+                        'table']:
+                        if isinstance(item['table']['ths_bond_balance_cbond'], list) and len(
+                                item['table']['ths_bond_balance_cbond']) > 0:
+                            data_balances.append(item['table']['ths_bond_balance_cbond'][0])
+                        else:
+                            data_balances.append(None)
+                    else:
 
+                        data_balances.append(None)
         elif consider_issue:
             data = THS_DS(jydm, 'ths_issue_credit_rating_cbond', ',', '', ths_date, ths_date, 'format:list')
 
@@ -84,8 +114,17 @@ class Ths:
                 print(data.errmsg)
             else:
                 for item in data.data:
-                    data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
-
+                    if 'table' in item and isinstance(item['table'], dict) and 'ths_issue_credit_rating_cbond' in item[
+                        'table']:
+                        if isinstance(item['table']['ths_issue_credit_rating_cbond'], list) and len(
+                                item['table']['ths_issue_credit_rating_cbond']) > 0:
+                            data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
+                        else:
+                            # 处理空列表的情况
+                            data_issues.append(None)
+                    else:
+                        # 处理缺少键或值不符合预期的情况
+                        data_issues.append(None)
         return data_balances, data_issues
 
     # 获取数据
@@ -131,8 +170,8 @@ class CPR:
 
         # 债券余额范围，单位为亿
         consider_balance = True
-        max_balance = 3
-        min_balance = 5
+        max_balance = 10
+        min_balance = 3
 
         # 债券评级
         consider_issue = False
@@ -174,7 +213,7 @@ class CPR:
             f022_value = float(f022)
 
             value_condition = (not consider_value) or (min_value < f027_value <= max_value)
-            balance_condition = (not consider_balance) or (data_balance < max_balance)
+            balance_condition = (not consider_balance) or (min_balance < data_balance <= max_balance)
             issue_condition = (not consider_issue) or (data_issue == issue)
 
             if value_condition and balance_condition and issue_condition:
@@ -192,8 +231,8 @@ def main():
     password = ""
     ths.login(username, password)
 
-    start_date = datetime.date(2018, 9, 10)
-    end_date = datetime.date(2018, 9, 10)
+    start_date = datetime.date(2024, 1, 1)
+    end_date = datetime.date(2024, 1, 9)
     data_basics = ths.get_data_basics(start_date, end_date)
 
     for ths_date, data_basic in data_basics:
