@@ -62,69 +62,34 @@ class Ths:
         if consider_balance and consider_issue:
             data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', ths_date, ths_date,
                           'format:list')
-
-            if data.data is None:
-                print(data.errmsg)
-            else:
-                for item in data.data:
-                    if 'table' in item and isinstance(item['table'], dict) and 'ths_bond_balance_cbond' in item[
-                        'table']:
-                        if isinstance(item['table']['ths_bond_balance_cbond'], list) and len(
-                                item['table']['ths_bond_balance_cbond']) > 0:
-                            data_balances.append(item['table']['ths_bond_balance_cbond'][0])
-                        else:
-                            data_balances.append(None)
-                    else:
-
-                        data_balances.append(None)
-
-                    if 'table' in item and isinstance(item['table'], dict) and 'ths_issue_credit_rating_cbond' in item[
-                        'table']:
-                        if isinstance(item['table']['ths_issue_credit_rating_cbond'], list) and len(
-                                item['table']['ths_issue_credit_rating_cbond']) > 0:
-                            data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
-                        else:
-                            # 处理空列表的情况
-                            data_issues.append(None)
-                    else:
-                        # 处理缺少键或值不符合预期的情况
-                        data_issues.append(None)
-
         elif consider_balance:
             data = THS_DS(jydm, 'ths_bond_balance_cbond', ',', '', ths_date, ths_date, 'format:list')
-
-            if data.data is None:
-                print(data.errmsg)
-            else:
-                for item in data.data:
-                    if 'table' in item and isinstance(item['table'], dict) and 'ths_bond_balance_cbond' in item[
-                        'table']:
-                        if isinstance(item['table']['ths_bond_balance_cbond'], list) and len(
-                                item['table']['ths_bond_balance_cbond']) > 0:
-                            data_balances.append(item['table']['ths_bond_balance_cbond'][0])
-                        else:
-                            data_balances.append(None)
-                    else:
-
-                        data_balances.append(None)
         elif consider_issue:
             data = THS_DS(jydm, 'ths_issue_credit_rating_cbond', ',', '', ths_date, ths_date, 'format:list')
+        else:
+            return None, None
 
-            if data.data is None:
-                print(data.errmsg)
-            else:
-                for item in data.data:
-                    if 'table' in item and isinstance(item['table'], dict) and 'ths_issue_credit_rating_cbond' in item[
-                        'table']:
-                        if isinstance(item['table']['ths_issue_credit_rating_cbond'], list) and len(
-                                item['table']['ths_issue_credit_rating_cbond']) > 0:
-                            data_issues.append(item['table']['ths_issue_credit_rating_cbond'][0])
-                        else:
-                            # 处理空列表的情况
-                            data_issues.append(None)
-                    else:
-                        # 处理缺少键或值不符合预期的情况
-                        data_issues.append(None)
+        if data.data is None:
+            print(data.errmsg)
+        elif consider_balance:
+            for item in data.data:
+                table = item.get('table', {})
+                ths_bond_balance_cbond = table.get('ths_bond_balance_cbond', [])
+
+                if isinstance(ths_bond_balance_cbond, list) and ths_bond_balance_cbond:
+                    data_balances.append(ths_bond_balance_cbond[0])
+                else:
+                    data_balances.append(None)
+        elif consider_issue:
+            for item in data.data:
+                table = item.get('table', {})
+                ths_issue_credit_rating_cbond = table.get('ths_issue_credit_rating_cbond', [])
+
+                if isinstance(ths_issue_credit_rating_cbond, list) and ths_issue_credit_rating_cbond:
+                    data_issues.append(ths_issue_credit_rating_cbond[0])
+                else:
+                    data_issues.append(None)
+
         return data_balances, data_issues
 
     # 获取数据
@@ -231,8 +196,8 @@ def main():
     password = ""
     ths.login(username, password)
 
-    start_date = datetime.date(2024, 1, 1)
-    end_date = datetime.date(2024, 1, 9)
+    start_date = datetime.date(2024, 1, 2)
+    end_date = datetime.date(2024, 1, 2)
     data_basics = ths.get_data_basics(start_date, end_date)
 
     for ths_date, data_basic in data_basics:
