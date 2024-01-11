@@ -98,28 +98,35 @@ class Ths:
         delta = datetime.timedelta(days=1)
         data_list = []
         print("基本数据获取")
-        while start_date <= end_date:
-            edate = start_date.strftime("%Y%m%d")
+
+        for current_date in range((end_date - start_date).days + 1):
+            current_date = start_date + timedelta(days=current_date)
+
+            if current_date.weekday() in [5, 6]:
+                data_list.append((current_date.strftime("%Y-%m-%d"), None))
+                continue
+
+            edate = current_date.strftime("%Y%m%d")
             json_file_path = f'data/{edate}.json'
+
             if os.path.exists(json_file_path):
                 # 指定JSON文件路径
-
                 print(f'从文件{json_file_path}中读取数据')
                 # 从JSON文件读取数据
                 with open(json_file_path, 'r') as json_file:
                     data = json.load(json_file)
 
-                data_list.append((start_date.strftime("%Y-%m-%d"), data))
+                data_list.append((current_date.strftime("%Y-%m-%d"), data))
             else:
                 get_str = 'edate=' + edate + ';zqlx=全部'
                 # jydm交易代码 f027转换价值 f022转股溢价率
                 data = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
                 if data.data is None:
                     print(data.errmsg)
+                    data_list.append((current_date.strftime("%Y-%m-%d"), None))
                 else:
                     file_handler.save_to_json(edate, data.data)
-                    data_list.append((start_date.strftime("%Y-%m-%d"), data.data))
-            start_date += delta
+                    data_list.append((current_date.strftime("%Y-%m-%d"), data.data))
 
         return data_list
 
@@ -201,9 +208,12 @@ def main():
     data_basics = ths.get_data_basics(start_date, end_date)
 
     for ths_date, data_basic in data_basics:
-        median_value = cpr.calculate_median(data_basic[0]['table'], ths_date)
-        if median_value is not None:
-            file_handler.save_to_excel("转股溢价率记录.xlsx", ths_date, median_value)
+        median_value = None
+        if data_basic is not None:
+            median_value = cpr.calculate_median(data_basic[0]['table'], ths_date)
+        if median_value is None:
+            median_value = ''
+        file_handler.save_to_excel("转股溢价率记录.xlsx", ths_date, median_value)
 
 
 if __name__ == '__main__':
