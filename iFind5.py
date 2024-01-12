@@ -213,8 +213,8 @@ def main():
     ths = Ths()
     file_handler = FileHandler()
     cpr = CPR()
-    username = ""
-    password = ""
+    username = "zyzqsx112"
+    password = "935b43"
     ths.login(username, password)
 
     start_date = datetime.date(2024, 1, 2)
