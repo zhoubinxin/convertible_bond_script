@@ -16,8 +16,8 @@ class FileHandler:
             os.makedirs(self.directory_path)
             print(f'创建文件夹 {self.directory_path}')
 
-    def save_to_json(self, ths_date, data):
-        json_file_path = f'data/{ths_date}.json'
+    def save_to_json(self, wind_date, data):
+        json_file_path = f'data/{wind_date}.json'
         # 将数据列表保存为JSON文件
         with open(json_file_path, 'w') as json_file:
             json.dump(data, json_file, indent=2)
@@ -98,47 +98,71 @@ class Wind:
 
         return data_list
 
+    def get_bond(self, jydm, wind_date, consider_balance, consider_issue):
+        return None, None
+
 
 class CPR:
-    def calculate_median(self, data, name, date):
-        # 转股价值
-        consider_value = True
+    # 计算中位数
+    def calculate_median(self, data, wind_date):
+        wind = Wind()
+        # 转换价值
+        consider_value = False
         max_value = 120
         min_value = 100
 
-        # 债券余额范围
+        # 债券余额范围，单位为亿
         consider_balance = False
-        max_balance = 100
-        min_balance = 5
+        max_balance = 10
+        min_balance = 3
 
         # 债券评级
         consider_issue = False
         issue = "AA+"
 
-        values = []
-        convpremiumratio = data[0]
-        convvalue = data[1]
+        float_values = []
 
-        for premiumratio, value in zip(convpremiumratio, convvalue):
-            if premiumratio is None or value is None:
+        data_jydm = data['jydm']
+        data_f022 = data['p00868_f022']
+        data_f027 = data['p00868_f027']
+
+        data_balance = data_issue = None
+
+        data_balances, data_issues = wind.get_bond(data_jydm, wind_date, consider_balance, consider_issue)
+
+        for i in range(len(data_jydm)):
+            f027 = data_f027[i]
+            f022 = data_f022[i]
+            if '--' in f027 or '--' in f022:
                 continue
 
-            if np.isnan(premiumratio) or np.isnan(value):
-                continue
+            if consider_balance:
+                if len(data_balances) == 0:
+                    continue
+                else:
+                    data_balance = data_balances[i]
+                    if data_balance is None:
+                        continue
 
-            # data_balance = None
-            # data_issue = None
-            # if consider_balance or consider_issue:
-            #     data_balance, data_issue = get_bond(jydm, date)
+            if consider_issue:
+                if len(data_issues) == 0:
+                    continue
+                else:
+                    data_issue = data_issues[i]
+                    if data_issue is None:
+                        continue
 
-            value_condition = (not consider_value) or (min_value < value <= max_value)
-            # balance_condition = (not consider_balance) or (min_balance < data_balance)
-            # issue_condition = (not consider_issue) or (data_issue == issue)
+            f027_value = float(f027)
+            f022_value = float(f022)
 
-            if value_condition:
-                values.append(premiumratio)
+            value_condition = (not consider_value) or (min_value < f027_value <= max_value)
+            balance_condition = (not consider_balance) or (min_balance < data_balance <= max_balance)
+            issue_condition = (not consider_issue) or (data_issue == issue)
 
-        return np.median(values) if values else ""
+            if value_condition and balance_condition and issue_condition:
+                float_values.append(f022_value)
+
+        return np.median(float_values) if float_values else ""
 
 
 # 主函数
@@ -148,11 +172,17 @@ def main():
     cpr = CPR()
     w.start()
 
-    start_date = datetime.date(2024, 1, 10)
-    end_date = datetime.date(2024, 1, 10)
+    start_date = datetime.date(2024, 1, 11)
+    end_date = datetime.date(2024, 1, 11)
     data_basics = wind.get_data_basics(start_date, end_date)
 
-    # interval_data = get_interval_data(start_date, end_date)
+    for wind_date, data_basic in data_basics:
+        median_value = None
+        if data_basic is not None:
+            median_value = cpr.calculate_median(data_basic[0]['table'], wind_date)
+        # if median_value is None:
+        #     median_value = ''
+        # file_handler.save_to_excel("转股溢价率记录(Wind).xlsx", wind_date, median_value)
 
     # for date, name, data in interval_data:
     #     median_value = calculate_median(data, name, date)
