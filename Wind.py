@@ -99,7 +99,46 @@ class Wind:
         return data_list
 
     def get_bond(self, jydm, wind_date, consider_balance, consider_issue):
-        return None, None
+        data_balances = []
+        data_issues = []
+
+        filename = wind_date[:4] + wind_date[5:7] + wind_date[8:]
+        json_file_path = f'data/{filename}.json'
+
+        # 从文件读取 JSON 数据
+        with open(json_file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        if "ths_bond_balance_cbond" not in data[0]:
+            print(f'{wind_date} 债券余额数据和债券评级')
+            jydm = ', '.join(jydm)
+
+            # outstandingbalance债券余额 amount债券评级
+            tradeDate = f'tradeDate={filename}'
+            bond_data = w.wss(jydm, "outstandingbalance,amount", tradeDate)
+
+            if bond_data.Data is None:
+                print(bond_data.ErrorCode)
+            else:
+                data_balances = bond_data.Data[0]
+                data_issues = bond_data.Data[1]
+
+            data[0]["ths_bond_balance_cbond"] = data_balances
+            data[0]["ths_issue_credit_rating_cbond"] = data_issues
+
+            # 将修改后的数据写回文件
+            with open(json_file_path, 'w', encoding='utf-8') as file:
+                json.dump(data, file, indent=4, ensure_ascii=False)
+        else:
+            print(f'{wind_date} 文件读取债券余额/债券评级')
+            with open(json_file_path, 'r') as json_file:
+                data = json.load(json_file)
+
+            if consider_balance:
+                data_balances = data[0]["ths_bond_balance_cbond"]
+            if consider_issue:
+                data_issues = data[0]["ths_issue_credit_rating_cbond"]
+        return data_balances, data_issues
 
 
 class CPR:
@@ -112,7 +151,7 @@ class CPR:
         min_value = 100
 
         # 债券余额范围，单位为亿
-        consider_balance = False
+        consider_balance = True
         max_balance = 10
         min_balance = 3
 
@@ -172,7 +211,7 @@ def main():
     cpr = CPR()
     w.start()
 
-    start_date = datetime.date(2024, 1, 11)
+    start_date = datetime.date(2024, 1, 1)
     end_date = datetime.date(2024, 1, 11)
     data_basics = wind.get_data_basics(start_date, end_date)
 
@@ -180,15 +219,9 @@ def main():
         median_value = None
         if data_basic is not None:
             median_value = cpr.calculate_median(data_basic[0]['table'], wind_date)
-        # if median_value is None:
-        #     median_value = ''
-        # file_handler.save_to_excel("转股溢价率记录(Wind).xlsx", wind_date, median_value)
-
-    # for date, name, data in interval_data:
-    #     median_value = calculate_median(data, name, date)
-    #     # print(median_value)
-    #     if median_value is not None:
-    #         save_to_excel("转股溢价率记录（Wind）.xlsx", date, median_value)
+        if median_value is None:
+            median_value = ''
+        file_handler.save_to_excel("转股溢价率记录(Wind).xlsx", wind_date, median_value)
 
 
 if __name__ == '__main__':
