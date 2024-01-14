@@ -72,7 +72,7 @@ class Ths:
                                ths_date, 'format:list')
 
             if bond_data.data is None:
-                print(data.errmsg)
+                print(bond_data.errmsg)
 
             for item in bond_data.data:
                 table = item.get('table', {})
@@ -96,7 +96,7 @@ class Ths:
             with open(json_file_path, 'w', encoding='utf-8') as file:
                 json.dump(data, file, indent=4, ensure_ascii=False)
         else:
-            print(f'{ths_date} 文件读取债券余额数据/债券评级')
+            print(f'{ths_date} 文件读取债券余额/债券评级')
             with open(json_file_path, 'r') as json_file:
                 data = json.load(json_file)
 
@@ -213,12 +213,12 @@ def main():
     ths = Ths()
     file_handler = FileHandler()
     cpr = CPR()
-    username = "zyzqsx112"
-    password = "935b43"
+    username = ""
+    password = ""
     ths.login(username, password)
 
-    start_date = datetime.date(2024, 1, 2)
-    end_date = datetime.date(2024, 1, 2)
+    start_date = datetime.date(2024, 1, 10)
+    end_date = datetime.date(2024, 1, 10)
     data_basics = ths.get_data_basics(start_date, end_date)
 
     for ths_date, data_basic in data_basics:
