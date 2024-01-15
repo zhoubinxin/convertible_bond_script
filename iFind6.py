@@ -55,59 +55,14 @@ class Ths:
             print('同花顺登录成功')
 
     # 获取债券余额数据和债券评级
-    def get_bond(self, jydm, ths_date, consider_balance, consider_issue):
-        data_balances = []
-        data_issues = []
+    def get_bond(self, jydm, ths_date):
+        # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
+        bond_data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', ths_date,
+                           ths_date, 'format:list')
+        if bond_data.data is None:
+            print(f'同花顺：{bond_data.errmsg}')
 
-        filename = ths_date[:4] + ths_date[5:7] + ths_date[8:]
-        json_file_path = f'data/{filename}.json'
-
-        # 从文件读取 JSON 数据
-        with open(json_file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-
-        if "ths_bond_balance_cbond" not in data[0]:
-            print(f'{ths_date} 债券余额数据和债券评级')
-            jydm = ', '.join(jydm)
-
-            # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
-            bond_data = THS_DS(jydm, 'ths_bond_balance_cbond;ths_issue_credit_rating_cbond', ';', '', ths_date,
-                               ths_date, 'format:list')
-
-            if bond_data.data is None:
-                print(bond_data.errmsg)
-
-            for item in bond_data.data:
-                table = item.get('table', {})
-                ths_bond_balance_cbond = table.get('ths_bond_balance_cbond', [])
-                ths_issue_credit_rating_cbond = table.get('ths_issue_credit_rating_cbond', [])
-
-                if isinstance(ths_bond_balance_cbond, list) and ths_bond_balance_cbond:
-                    data_balances.append(ths_bond_balance_cbond[0])
-                else:
-                    data_balances.append(None)
-
-                if isinstance(ths_issue_credit_rating_cbond, list) and ths_issue_credit_rating_cbond:
-                    data_issues.append(ths_issue_credit_rating_cbond[0])
-                else:
-                    data_issues.append(None)
-
-            data[0]["ths_bond_balance_cbond"] = data_balances
-            data[0]["ths_issue_credit_rating_cbond"] = data_issues
-
-            # 将修改后的数据写回文件
-            with open(json_file_path, 'w', encoding='utf-8') as file:
-                json.dump(data, file, indent=4, ensure_ascii=False)
-        else:
-            print(f'{ths_date} 文件读取债券余额/债券评级')
-            with open(json_file_path, 'r') as json_file:
-                data = json.load(json_file)
-
-            if consider_balance:
-                data_balances = data[0]["ths_bond_balance_cbond"]
-            if consider_issue:
-                data_issues = data[0]["ths_issue_credit_rating_cbond"]
-        return data_balances, data_issues
+        return bond_data
 
     # 获取数据
     def get_data_basics(self, edate):
@@ -138,7 +93,6 @@ class Wind:
             print(wind_data.ErrorCode)
             return None
         else:
-            print(wind_data.Data)
             p00868_f022 = [str(value) if not math.isnan(value) else '--' for value in
                            wind_data.Data[0]]
             p00868_f027 = [str(value) if not math.isnan(value) else '--' for value in wind_data.Data[1]]
@@ -146,48 +100,17 @@ class Wind:
             data = {"table": {"jydm": wind_code, "p00868_f027": p00868_f027, "p00868_f022": p00868_f022}}
             return data
 
-
-    def get_bond(self, jydm, wind_date, consider_balance, consider_issue):
-        data_balances = []
-        data_issues = []
-
+    def get_bond(self, jydm, wind_date):
         filename = wind_date[:4] + wind_date[5:7] + wind_date[8:]
-        json_file_path = f'data/{filename}.json'
 
-        # 从文件读取 JSON 数据
-        with open(json_file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
+        # outstandingbalance债券余额 amount债券评级
+        tradeDate = f'tradeDate={filename}'
+        bond_data = w.wss(jydm, "outstandingbalance,amount", tradeDate)
 
-        if "ths_bond_balance_cbond" not in data[0]:
-            print(f'{wind_date} 债券余额数据和债券评级')
-            jydm = ', '.join(jydm)
-
-            # outstandingbalance债券余额 amount债券评级
-            tradeDate = f'tradeDate={filename}'
-            bond_data = w.wss(jydm, "outstandingbalance,amount", tradeDate)
-
-            if bond_data.Data is None:
-                print(bond_data.ErrorCode)
-            else:
-                data_balances = bond_data.Data[0]
-                data_issues = bond_data.Data[1]
-
-            data[0]["ths_bond_balance_cbond"] = data_balances
-            data[0]["ths_issue_credit_rating_cbond"] = data_issues
-
-            # 将修改后的数据写回文件
-            with open(json_file_path, 'w', encoding='utf-8') as file:
-                json.dump(data, file, indent=4, ensure_ascii=False)
+        if bond_data.Data is None:
+            print(bond_data.ErrorCode)
         else:
-            print(f'{wind_date} 文件读取债券余额/债券评级')
-            with open(json_file_path, 'r') as json_file:
-                data = json.load(json_file)
-
-            if consider_balance:
-                data_balances = data[0]["ths_bond_balance_cbond"]
-            if consider_issue:
-                data_issues = data[0]["ths_issue_credit_rating_cbond"]
-        return data_balances, data_issues
+            return bond_data
 
 
 class CPR:
@@ -238,8 +161,66 @@ class CPR:
 
         return data_list
 
-    def get_bond(self, jydm, wind_date, consider_balance, consider_issue):
-        pass
+    def get_bond(self, jydm, cpr_date, consider_balance, consider_issue):
+        data_balances = []
+        data_issues = []
+
+        filename = cpr_date[:4] + cpr_date[5:7] + cpr_date[8:]
+        json_file_path = f'data/{filename}.json'
+
+        # 从文件读取 JSON 数据
+        with open(json_file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        if "ths_bond_balance_cbond" in data[0]:
+            print(f'{cpr_date} 文件读取债券余额/债券评级')
+            with open(json_file_path, 'r') as json_file:
+                data = json.load(json_file)
+
+            if consider_balance:
+                data_balances = data[0]["ths_bond_balance_cbond"]
+            if consider_issue:
+                data_issues = data[0]["ths_issue_credit_rating_cbond"]
+
+            return data_balances, data_issues
+
+        print(f'{cpr_date} 债券余额数据和债券评级')
+        jydm = ', '.join(jydm)
+
+        # ths_bond_balance_cbond债券余额数据 ths_issue_credit_rating_cbond债券评级
+        bond_data = self.ths.get_bond(jydm, cpr_date)
+
+        if bond_data.data is not None:
+            for item in bond_data.data:
+                table = item.get('table', {})
+                ths_bond_balance_cbond = table.get('ths_bond_balance_cbond', [])
+                ths_issue_credit_rating_cbond = table.get('ths_issue_credit_rating_cbond', [])
+
+                if isinstance(ths_bond_balance_cbond, list) and ths_bond_balance_cbond:
+                    data_balances.append(ths_bond_balance_cbond[0])
+                else:
+                    data_balances.append(None)
+
+                if isinstance(ths_issue_credit_rating_cbond, list) and ths_issue_credit_rating_cbond:
+                    data_issues.append(ths_issue_credit_rating_cbond[0])
+                else:
+                    data_issues.append(None)
+
+            data[0]["ths_bond_balance_cbond"] = data_balances
+            data[0]["ths_issue_credit_rating_cbond"] = data_issues
+        else:
+            bond_data = self.wind.get_bond(jydm, cpr_date)
+            data_balances = bond_data.Data[0]
+            data_issues = bond_data.Data[1]
+
+            data[0]["ths_bond_balance_cbond"] = data_balances
+            data[0]["ths_issue_credit_rating_cbond"] = data_issues
+
+        # 将修改后的数据写回文件
+        with open(json_file_path, 'w', encoding='utf-8') as file:
+            json.dump(data, file, indent=4, ensure_ascii=False)
+
+        return data_balances, data_issues
 
     # 计算中位数
     def calculate_median(self, data, ths_date):
@@ -265,7 +246,7 @@ class CPR:
 
         data_balance = data_issue = None
 
-        data_balances, data_issues = self.wind.get_bond(data_jydm, ths_date, consider_balance, consider_issue)
+        data_balances, data_issues = self.get_bond(data_jydm, ths_date, consider_balance, consider_issue)
 
         for i in range(len(data_jydm)):
             f027 = data_f027[i]
@@ -311,8 +292,8 @@ def main():
     password = ""
     cpr.login(username, password)
 
-    start_date = datetime.date(2023, 12, 21)
-    end_date = datetime.date(2023, 12, 23)
+    start_date = datetime.date(2023, 6, 8)
+    end_date = datetime.date(2023, 6, 8)
     data_basics = cpr.get_data_basics(start_date, end_date)
 
     for ths_date, data_basic in data_basics:
