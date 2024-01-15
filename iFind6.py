@@ -4,6 +4,9 @@ from iFinDPy import *
 import datetime
 import time
 import json
+import os
+from WindPy import w
+import math
 
 
 class FileHandler:
@@ -47,9 +50,9 @@ class Ths:
     def login(self, username, password):
         thsLogin = THS_iFinDLogin(username, password)
         if thsLogin != 0:
-            print('登录失败')
+            print('同花顺登录失败')
         else:
-            print('登录成功')
+            print('同花顺登录成功')
 
     # 获取债券余额数据和债券评级
     def get_bond(self, jydm, ths_date, consider_balance, consider_issue):
@@ -107,6 +110,95 @@ class Ths:
         return data_balances, data_issues
 
     # 获取数据
+    def get_data_basics(self, edate):
+        get_str = 'edate=' + edate + ';zqlx=全部'
+        # jydm交易代码 f027转换价值 f022转股溢价率
+        data = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
+        if data.data is None:
+            print(f'同花顺：{data.errmsg}')
+
+        return data.data
+
+
+class Wind:
+    def get_data_basics(self, edate):
+        # 获取交易代码
+        get_str = f"date={edate};sectorid=a101020600000000"
+        data_bond = w.wset("sectorconstituent", get_str)  # date,wind_code,sec_name
+        if data_bond.ErrorCode != 0:
+            print(f'Wind：{data_bond.ErrorCode}')
+        wind_code = data_bond.Data[1]
+        # sec_name = data_bond.Data[2]
+
+        # 获取转股溢价率
+        get_str = f"tradeDate={edate}"
+        # convpremiumratio,convvalue 转股溢价率，转换价值
+        wind_data = w.wss(wind_code, "convpremiumratio,convvalue", get_str)
+        if wind_data.ErrorCode != 0:
+            print(wind_data.ErrorCode)
+            return None
+        else:
+            print(wind_data.Data)
+            p00868_f022 = [str(value) if not math.isnan(value) else '--' for value in
+                           wind_data.Data[0]]
+            p00868_f027 = [str(value) if not math.isnan(value) else '--' for value in wind_data.Data[1]]
+
+            data = {"table": {"jydm": wind_code, "p00868_f027": p00868_f027, "p00868_f022": p00868_f022}}
+            return data
+
+
+    def get_bond(self, jydm, wind_date, consider_balance, consider_issue):
+        data_balances = []
+        data_issues = []
+
+        filename = wind_date[:4] + wind_date[5:7] + wind_date[8:]
+        json_file_path = f'data/{filename}.json'
+
+        # 从文件读取 JSON 数据
+        with open(json_file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        if "ths_bond_balance_cbond" not in data[0]:
+            print(f'{wind_date} 债券余额数据和债券评级')
+            jydm = ', '.join(jydm)
+
+            # outstandingbalance债券余额 amount债券评级
+            tradeDate = f'tradeDate={filename}'
+            bond_data = w.wss(jydm, "outstandingbalance,amount", tradeDate)
+
+            if bond_data.Data is None:
+                print(bond_data.ErrorCode)
+            else:
+                data_balances = bond_data.Data[0]
+                data_issues = bond_data.Data[1]
+
+            data[0]["ths_bond_balance_cbond"] = data_balances
+            data[0]["ths_issue_credit_rating_cbond"] = data_issues
+
+            # 将修改后的数据写回文件
+            with open(json_file_path, 'w', encoding='utf-8') as file:
+                json.dump(data, file, indent=4, ensure_ascii=False)
+        else:
+            print(f'{wind_date} 文件读取债券余额/债券评级')
+            with open(json_file_path, 'r') as json_file:
+                data = json.load(json_file)
+
+            if consider_balance:
+                data_balances = data[0]["ths_bond_balance_cbond"]
+            if consider_issue:
+                data_issues = data[0]["ths_issue_credit_rating_cbond"]
+        return data_balances, data_issues
+
+
+class CPR:
+    def __init__(self):
+        self.ths = Ths()
+        self.wind = Wind()
+
+    def login(self, username, password):
+        self.ths.login(username, password)
+        w.start()
+
     def get_data_basics(self, start_date, end_date):
         file_handler = FileHandler()
         data_list = []
@@ -132,23 +224,25 @@ class Ths:
                 data_list.append((current_date.strftime("%Y-%m-%d"), data))
             else:
                 print(f'{current_date} 接口获取')
-                get_str = 'edate=' + edate + ';zqlx=全部'
-                # jydm交易代码 f027转换价值 f022转股溢价率
-                data = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
-                if data.data is None:
-                    print(data.errmsg)
-                    data_list.append((current_date.strftime("%Y-%m-%d"), None))
+                data = self.ths.get_data_basics(edate)
+                if data is None:
+                    data = self.wind.get_data_basics(edate)
+                    if data is None:
+                        data_list.append((current_date.strftime("%Y-%m-%d"), None))
+                    else:
+                        file_handler.save_to_json(edate, [data])
+                        data_list.append((current_date.strftime("%Y-%m-%d"), [data]))
                 else:
-                    file_handler.save_to_json(edate, data.data)
-                    data_list.append((current_date.strftime("%Y-%m-%d"), data.data))
+                    file_handler.save_to_json(edate, data)
+                    data_list.append((current_date.strftime("%Y-%m-%d"), data))
 
         return data_list
 
+    def get_bond(self, jydm, wind_date, consider_balance, consider_issue):
+        pass
 
-class CPR:
     # 计算中位数
     def calculate_median(self, data, ths_date):
-        ths = Ths()
         # 转换价值
         consider_value = False
         max_value = 120
@@ -171,7 +265,7 @@ class CPR:
 
         data_balance = data_issue = None
 
-        data_balances, data_issues = ths.get_bond(data_jydm, ths_date, consider_balance, consider_issue)
+        data_balances, data_issues = self.wind.get_bond(data_jydm, ths_date, consider_balance, consider_issue)
 
         for i in range(len(data_jydm)):
             f027 = data_f027[i]
@@ -215,11 +309,11 @@ def main():
     cpr = CPR()
     username = ""
     password = ""
-    ths.login(username, password)
+    cpr.login(username, password)
 
-    start_date = datetime.date(2024, 1, 10)
-    end_date = datetime.date(2024, 1, 10)
-    data_basics = ths.get_data_basics(start_date, end_date)
+    start_date = datetime.date(2023, 12, 21)
+    end_date = datetime.date(2023, 12, 23)
+    data_basics = cpr.get_data_basics(start_date, end_date)
 
     for ths_date, data_basic in data_basics:
         median_value = None
