@@ -12,7 +12,7 @@ import math
 class FileHandler:
     def __init__(self):
         self.directory_path = 'data'
-        # 判断目录是否存在，如果不存在则创建
+        # 创建data目录，用于存储数据
         if not os.path.exists(self.directory_path):
             os.makedirs(self.directory_path)
             print(f'创建文件夹 {self.directory_path}')
@@ -20,7 +20,11 @@ class FileHandler:
     # 保存数据到Excel
     def save_to_excel(self, file_name, str_date, premium):
         print(f'{str_date} 数据保存中...')
-        while True:
+
+        max_attempts = 5
+        attempt = 1
+
+        while attempt <= max_attempts:
             try:
                 if not os.path.exists(file_name):
                     data = {"日期": [str_date], "转股溢价率%": [premium]}
@@ -32,9 +36,16 @@ class FileHandler:
 
                 df.to_excel(file_name, index=False)
                 break  # 如果成功写入，跳出循环
-            except PermissionError:
-                print(f"请关闭文件 '{file_name}'")
-                time.sleep(5)
+            except PermissionError as e:
+                print(f"无法写入文件 '{file_name}'，请确保没有其他程序正在使用该文件。错误详情：{e}")
+                if attempt < max_attempts:
+                    print(f"尝试重新写入，剩余尝试次数: {max_attempts - attempt}")
+                    attempt += 1
+                    time.sleep(5)
+                else:
+                    print("写入文件失败")
+                    print(f'日期: {str_date}, 转股溢价率%: {premium}')
+                    break
 
     def save_to_json(self, ths_date, data):
         json_file_path = f'data/{ths_date}.json'
