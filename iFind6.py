@@ -48,12 +48,15 @@ class FileHandler:
                     break
 
     def save_to_json(self, ths_date, data):
-        json_file_path = f'data/{ths_date}.json'
-        # 将数据列表保存为JSON文件
-        with open(json_file_path, 'w') as json_file:
-            json.dump(data, json_file, indent=2)
+        json_file_path = f'{self.directory_path}/{ths_date}.json'
+        try:
+            # 将数据列表保存为JSON文件
+            with open(json_file_path, 'w') as json_file:
+                json.dump(data, json_file, indent=2)
 
-        print(f'数据已保存到 {json_file_path}')
+            print(f'数据已保存到 {json_file_path}')
+        except Exception as e:
+            print(f'无法写入文件 {json_file_path}。错误详情：{e}')
 
 
 class Ths:
