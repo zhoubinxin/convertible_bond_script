@@ -80,7 +80,7 @@ class Ths:
 
     # 获取数据
     def get_data_basics(self, edate):
-        get_str = 'edate=' + edate + ';zqlx=全部'
+        get_str = 'edate={};zqlx=全部'.format(edate)
         # jydm交易代码 f027转换价值 f022转股溢价率
         data = THS_DR('p00868', get_str, 'jydm:Y,p00868_f027:Y,p00868_f022:Y', 'format:list')
         if data.data is None:
@@ -299,7 +299,6 @@ class CPR:
 
 # 主函数
 def main():
-    ths = Ths()
     file_handler = FileHandler()
     cpr = CPR()
     username = ""
