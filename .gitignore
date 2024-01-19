@@ -1,5 +1,4 @@
 .idea/
-/Test/密码
 *.xlsx
-*.json
 /Test/
+.*/
