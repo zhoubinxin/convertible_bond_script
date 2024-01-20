@@ -1,3 +1,5 @@
+# code为交易代码 cv为转股价值 cpr为转股溢价率 balance为债券余额 issue为债券评级 name为债券名称
+
 from iFinDPy import *
 from WindPy import w
 import datetime
@@ -71,14 +73,14 @@ class FileHandler:
 
         if not os.path.exists(file_path):
             with open(file_path, 'w') as file:
-                json.dump({key: data}, file, indent=4)
+                json.dump({key: data}, file, indent=4, ensure_ascii=False)
                 print('json数据保存成功')
         else:
             with open(file_path, 'r') as file:
                 existing_data = json.load(file)
                 existing_data[key] = data
                 with open(file_path, 'w') as file:
-                    json.dump(existing_data, file, indent=4)
+                    json.dump(existing_data, file, indent=4, ensure_ascii=False)
                     print('json数据更新成功')
 
 
@@ -120,9 +122,11 @@ class CPR:
         data_code = self.file_handler.get_json_data(current_date, "code")
         if not data_code:
             data_code = self.ths.get_code(current_date)
-            if data_code:
-                self.file_handler.save_json_data(current_date, data_code, "code")
+            if not data_code:
+                data_code = self.wind.get_code(current_date)
 
+        if data_code:
+            self.file_handler.save_json_data(current_date, data_code, "code")
         return data_code
 
 
@@ -159,6 +163,18 @@ class Wind:
         else:
             print('Wind登录成功')
 
+    def get_code(self, current_date):
+        file_handler = FileHandler()
+        query = f"date={current_date};sectorid=a101020600000000"
+        data_code = w.wset("sectorconstituent", query)
+
+        if data_code.ErrorCode != 0:
+            print(f'Wind获取交易代码失败：{data_code.Data}')
+            return None
+        else:
+            file_handler.save_json_data(current_date, data_code.Data[2], "name")
+            return data_code.Data[1]
+
 
 # 主函数
 def main():
@@ -183,11 +199,11 @@ def main():
     cpr = CPR()
     file_handler = FileHandler()
 
-    # cpr.login(username, password)
+    cpr.login(username, password)
 
     # 数据周期
-    start_date = datetime.date(2023, 6, 10)
-    end_date = datetime.date(2023, 6, 10)
+    start_date = datetime.date(2024, 1, 20)
+    end_date = datetime.date(2024, 1, 20)
 
     # 获取中位数
     excel_name = "转股溢价率中位数"
