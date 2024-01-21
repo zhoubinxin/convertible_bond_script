@@ -6,6 +6,9 @@ import datetime
 import sys
 import pandas as pd
 import time
+import numpy as np
+import os
+import math
 
 
 # 文件相关操作
@@ -74,14 +77,14 @@ class FileHandler:
         if not os.path.exists(file_path):
             with open(file_path, 'w') as file:
                 json.dump({key: data}, file, indent=4, ensure_ascii=False)
-                print('json数据保存成功')
+                print(f'json数据保存成功：{json_name} {key}')
         else:
             with open(file_path, 'r') as file:
                 existing_data = json.load(file)
                 existing_data[key] = data
                 with open(file_path, 'w') as file:
                     json.dump(existing_data, file, indent=4, ensure_ascii=False)
-                    print('json数据更新成功')
+                    print(f'json数据更新成功：{json_name} {key}')
 
 
 class CPR:
@@ -105,12 +108,27 @@ class CPR:
         for current_date in range((end_date - start_date).days + 1):
             current_date = start_date + timedelta(days=current_date)
 
+            date_list.append(str(current_date))
+
+            if current_date.weekday() in [5, 6]:
+                median.append(None)
+                continue
             # 交易代码
             code = self.get_code(current_date)
+            cpr = self.get_cpr(code, current_date)
 
-            # 此处添加日期和中位数的数据
-            date_list.append(current_date.strftime("%Y-%m-%d"))
-            median.append(0)  # 在此添加实际的中位数值，此处暂时用0表示
+            if cpr is None:
+                median.append(None)
+                continue
+
+            cpr_list = []
+            for i in range(len(code)):
+                if cpr[i] is not None:
+                    cpr_list.append(cpr[i])
+            if len(cpr_list) != 0:
+                median.append(np.median(cpr_list))
+            else:
+                median.append(None)
 
         data_median = {
             "日期": date_list,
@@ -125,9 +143,21 @@ class CPR:
             if not data_code:
                 data_code = self.wind.get_code(current_date)
 
-        if data_code:
-            self.file_handler.save_json_data(current_date, data_code, "code")
+                if data_code:
+                    self.file_handler.save_json_data(current_date, data_code, "code")
+
         return data_code
+
+    def get_cpr(self, code, current_date):
+        data_cpr = self.file_handler.get_json_data(current_date, "cpr")
+        if not data_cpr:
+            data_cpr = self.ths.get_cpr(code, current_date)
+            if not data_cpr:
+                data_cpr = self.wind.get_cpr(code, current_date)
+
+                if data_cpr:
+                    self.file_handler.save_json_data(current_date, data_cpr, "cpr")
+        return data_cpr
 
 
 # 同花顺数据获取
@@ -144,6 +174,11 @@ class Ths:
         # 获取交易代码
         data_code = None
         return data_code
+
+    def get_cpr(self, code, current_date):
+        # 获取CPR数据
+        data_cpr = None
+        return data_cpr
 
 
 # Wind数据获取
@@ -175,6 +210,26 @@ class Wind:
             file_handler.save_json_data(current_date, data_code.Data[2], "name")
             return data_code.Data[1]
 
+    def get_cpr(self, code, current_date):
+        file_handler = FileHandler()
+        str_date = current_date.strftime("%Y%m%d")
+        query = f"tradeDate={str_date}"
+
+        data_cpr = w.wss(code, "convpremiumratio", query)
+
+        if data_cpr.ErrorCode != 0:
+            print(f'Wind获取CPR失败：{data_cpr.Data}')
+            return None
+        else:
+            new_cpr = []
+            for cpr in data_cpr.Data[0]:
+                # 判断cpr是否为Nan
+                if not math.isnan(cpr):
+                    new_cpr.append(cpr)
+                else:
+                    new_cpr.append(None)
+            return new_cpr
+
 
 # 主函数
 def main():
@@ -202,8 +257,8 @@ def main():
     cpr.login(username, password)
 
     # 数据周期
-    start_date = datetime.date(2024, 1, 20)
-    end_date = datetime.date(2024, 1, 20)
+    start_date = datetime.date(2024, 1, 17)
+    end_date = datetime.date(2024, 1, 17)
 
     # 获取中位数
     excel_name = "转股溢价率中位数"
