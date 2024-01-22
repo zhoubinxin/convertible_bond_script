@@ -114,17 +114,29 @@ class CPR:
             if current_date.weekday() in [5, 6]:
                 median.append(None)
                 continue
+
             # 交易代码
             code = self.get_code(current_date)
+            # 转股溢价率
             cpr = self.get_cpr(code, current_date)
 
+            length = len(code)
             if cpr is None:
                 median.append(None)
                 continue
 
+            cv_condition = [True] * length
+
+            if data_consider['consider_cv']:
+                cv = self.get_cv(code, current_date)
+                cv_range = data_consider['cv_range']
+                for i in range(length):
+                    if cv[i] is None or not cv[i] in cv_range:
+                        cv_condition[i] = False
+
             cpr_list = []
-            for i in range(len(code)):
-                if cpr[i] is not None:
+            for i in range(length):
+                if cpr[i] is not None and cv_condition[i]:
                     cpr_list.append(cpr[i])
             if len(cpr_list) != 0:
                 median.append(np.median(cpr_list))
@@ -160,6 +172,18 @@ class CPR:
                     self.file_handler.save_json_data(current_date, data_cpr, "cpr")
         return data_cpr
 
+    def get_cv(self, code, current_date):
+        data_cv = self.file_handler.get_json_data(current_date, "cv")
+        if not data_cv:
+            data_cv = self.ths.get_cv(code, current_date)
+            if not data_cv:
+                data_cv = self.wind.get_cv(code, current_date)
+
+                if data_cv:
+                    self.file_handler.save_json_data(current_date, data_cv, "cv")
+
+        return data_cv
+
 
 # 同花顺数据获取
 class Ths:
@@ -177,9 +201,14 @@ class Ths:
         return data_code
 
     def get_cpr(self, code, current_date):
-        # 获取CPR数据
+        # 获取转股溢价率
         data_cpr = None
         return data_cpr
+
+    def get_cv(self, code, current_date):
+        # 获取转股价值
+        data_cv = None
+        return data_cv
 
 
 # Wind数据获取
@@ -212,14 +241,13 @@ class Wind:
             return data_code.Data[1]
 
     def get_cpr(self, code, current_date):
-        file_handler = FileHandler()
         str_date = current_date.strftime("%Y%m%d")
         query = f"tradeDate={str_date}"
 
         data_cpr = w.wss(code, "convpremiumratio", query)
 
         if data_cpr.ErrorCode != 0:
-            print(f'Wind获取CPR失败：{data_cpr.Data}')
+            print(f'Wind获取转股溢价率失败：{data_cpr}')
             return None
         else:
             new_cpr = []
@@ -231,6 +259,25 @@ class Wind:
                     new_cpr.append(None)
             return new_cpr
 
+    def get_cv(self, code, current_date):
+        str_date = current_date.strftime("%Y%m%d")
+        query = f"tradeDate={str_date}"
+
+        data_cv = w.wss(code, "convvalue", query)
+
+        if data_cv.ErrorCode != 0:
+            print(f'Wind获取转股价值失败：{data_cv}')
+            return None
+        else:
+            new_cv = []
+            for cv in data_cv.Data[0]:
+                # 判断cv是否为Nan
+                if not math.isnan(cv):
+                    new_cv.append(cv)
+                else:
+                    new_cv.append(None)
+            return new_cv
+
 
 # 主函数
 def main():
@@ -240,7 +287,7 @@ def main():
 
     data_consider = {
         # 转股价值
-        "consider_cv": False,
+        "consider_cv": True,
         "cv_range": Interval(100, 120, lower_closed=True, upper_closed=True),
         # 债券余额，单位为亿
         "consider_balance": False,
