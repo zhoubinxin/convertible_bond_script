@@ -9,6 +9,7 @@ import time
 import numpy as np
 import os
 import math
+from interval import Interval
 
 
 # 文件相关操作
@@ -239,13 +240,11 @@ def main():
 
     data_consider = {
         # 转股价值
-        "consider_value": False,
-        "max_value": 120,
-        "min_value": 100,
+        "consider_cv": False,
+        "cv_range": Interval(100, 120, lower_closed=True, upper_closed=True),
         # 债券余额，单位为亿
         "consider_balance": False,
-        "max_balance": 10,
-        "min_balance": 3,
+        "balance_range": Interval(3, 10, lower_closed=True, upper_closed=True),
         # 债券评级
         "consider_issue": False,
         "issue": "AA+"
