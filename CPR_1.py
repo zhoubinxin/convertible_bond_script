@@ -126,6 +126,8 @@ class CPR:
                 continue
 
             cv_condition = [True] * length
+            balance_condition = [True] * length
+            issue_condition = [True] * length
 
             if data_consider['consider_cv']:
                 cv = self.get_cv(code, current_date)
@@ -134,9 +136,24 @@ class CPR:
                     if cv[i] is None or not cv[i] in cv_range:
                         cv_condition[i] = False
 
+            if data_consider['consider_balance']:
+                balance = self.get_balance(code, current_date)
+                balance_range = data_consider['balance_range']
+                for i in range(length):
+                    if balance[i] is None or not balance[i] in balance_range:
+                        balance_condition[i] = False
+
+            if data_consider['consider_issue']:
+                issue = self.get_issue(code, current_date)
+                issue_range = data_consider['issue']
+                for i in range(length):
+                    if issue[i] is None or issue[i] != issue_range:
+                        issue_condition[i] = False
+
             cpr_list = []
             for i in range(length):
-                if cpr[i] is not None and cv_condition[i]:
+                if cpr[i] is not None and cv_condition[i] and balance_condition[i] and issue_condition[i]:
+                    # print(code[i], cpr[i], cv[i], balance[i], issue[i])
                     cpr_list.append(cpr[i])
             if len(cpr_list) != 0:
                 median.append(np.median(cpr_list))
@@ -184,6 +201,30 @@ class CPR:
 
         return data_cv
 
+    def get_balance(self, code, current_code):
+        data_balance = self.file_handler.get_json_data(current_code, "balance")
+
+        if not data_balance:
+            data_balance = self.ths.get_balance(code, current_code)
+            if not data_balance:
+                data_balance = self.wind.get_balance(code, current_code)
+
+                if data_balance:
+                    self.file_handler.save_json_data(current_code, data_balance, "balance")
+        return data_balance
+
+    def get_issue(self, code, current_date):
+        data_issue = self.file_handler.get_json_data(current_date, "issue")
+
+        if not data_issue:
+            data_issue = self.ths.get_issue(code, current_date)
+            if not data_issue:
+                data_issue = self.wind.get_issue(code, current_date)
+
+                if data_issue:
+                    self.file_handler.save_json_data(current_date, data_issue, "issue")
+        return data_issue
+
 
 # 同花顺数据获取
 class Ths:
@@ -209,6 +250,15 @@ class Ths:
         # 获取转股价值
         data_cv = None
         return data_cv
+
+    def get_balance(self, code, current_date):
+        # 获取债券余额
+        data_balance = None
+        return data_balance
+
+    def get_issue(self, code, current_date):
+        data_issue = None
+        return data_issue
 
 
 # Wind数据获取
@@ -278,6 +328,36 @@ class Wind:
                     new_cv.append(None)
             return new_cv
 
+    def get_balance(self, code, current_date):
+        str_date = current_date.strftime("%Y%m%d")
+        query = f"tradeDate={str_date}"
+
+        data_balance = w.wss(code, "outstandingbalance", query)
+
+        if data_balance.ErrorCode != 0:
+            print(f'Wind获取债券余额失败：{data_balance}')
+            return None
+        else:
+            new_balance = []
+            for balance in data_balance.Data[0]:
+                if not math.isnan(balance):
+                    new_balance.append(balance)
+                else:
+                    new_balance.append(None)
+            return new_balance
+
+    def get_issue(self, code, current_date):
+        str_date = current_date.strftime("%Y%m%d")
+        query = f"tradeDate={str_date}"
+
+        data_issue = w.wss(code, "amount", query)
+
+        if data_issue.ErrorCode != 0:
+            print(f'Wind获取债券评级失败：{data_issue}')
+            return None
+        else:
+            return data_issue.Data[0]
+
 
 # 主函数
 def main():
@@ -288,12 +368,12 @@ def main():
     data_consider = {
         # 转股价值
         "consider_cv": True,
-        "cv_range": Interval(100, 120, lower_closed=True, upper_closed=True),
+        "cv_range": Interval(90, 100, lower_closed=True, upper_closed=True),
         # 债券余额，单位为亿
-        "consider_balance": False,
-        "balance_range": Interval(3, 10, lower_closed=True, upper_closed=True),
+        "consider_balance": True,
+        "balance_range": Interval(3, 30, lower_closed=True, upper_closed=True),
         # 债券评级
-        "consider_issue": False,
+        "consider_issue": True,
         "issue": "AA+"
     }
 
