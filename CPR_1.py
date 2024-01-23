@@ -108,7 +108,7 @@ class CPR:
 
         for current_date in range((end_date - start_date).days + 1):
             current_date = start_date + timedelta(days=current_date)
-
+            print(current_date)
             date_list.append(str(current_date))
 
             if current_date.weekday() in [5, 6]:
@@ -117,6 +117,9 @@ class CPR:
 
             # 交易代码
             code = self.get_code(current_date)
+            if code is None:
+                median.append(None)
+                continue
             # 转股溢价率
             cpr = self.get_cpr(code, current_date)
 
@@ -170,11 +173,9 @@ class CPR:
         data_code = self.file_handler.get_json_data(current_date, "code")
         if not data_code:
             data_code = self.ths.get_code(current_date)
-            if not data_code:
-                data_code = self.wind.get_code(current_date)
 
-                if data_code:
-                    self.file_handler.save_json_data(current_date, data_code, "code")
+            if data_code:
+                self.file_handler.save_json_data(current_date, data_code, "code")
 
         return data_code
 
@@ -185,8 +186,9 @@ class CPR:
             if not data_cpr:
                 data_cpr = self.wind.get_cpr(code, current_date)
 
-                if data_cpr:
-                    self.file_handler.save_json_data(current_date, data_cpr, "cpr")
+            if data_cpr:
+                self.file_handler.save_json_data(current_date, data_cpr, "cpr")
+
         return data_cpr
 
     def get_cv(self, code, current_date):
@@ -196,8 +198,8 @@ class CPR:
             if not data_cv:
                 data_cv = self.wind.get_cv(code, current_date)
 
-                if data_cv:
-                    self.file_handler.save_json_data(current_date, data_cv, "cv")
+            if data_cv:
+                self.file_handler.save_json_data(current_date, data_cv, "cv")
 
         return data_cv
 
@@ -209,8 +211,9 @@ class CPR:
             if not data_balance:
                 data_balance = self.wind.get_balance(code, current_code)
 
-                if data_balance:
-                    self.file_handler.save_json_data(current_code, data_balance, "balance")
+            if data_balance:
+                self.file_handler.save_json_data(current_code, data_balance, "balance")
+
         return data_balance
 
     def get_issue(self, code, current_date):
@@ -221,8 +224,9 @@ class CPR:
             if not data_issue:
                 data_issue = self.wind.get_issue(code, current_date)
 
-                if data_issue:
-                    self.file_handler.save_json_data(current_date, data_issue, "issue")
+            if data_issue:
+                self.file_handler.save_json_data(current_date, data_issue, "issue")
+
         return data_issue
 
 
@@ -383,8 +387,8 @@ def main():
     cpr.login(username, password)
 
     # 数据周期
-    start_date = datetime.date(2024, 1, 17)
-    end_date = datetime.date(2024, 1, 17)
+    start_date = datetime.date(2023, 6, 8)
+    end_date = datetime.date(2023, 6, 8)
 
     # 获取中位数
     excel_name = "转股溢价率中位数"
