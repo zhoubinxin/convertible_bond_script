@@ -1,4 +1,6 @@
-# code为交易代码 cv为转股价值 cpr为转股溢价率 balance为债券余额 issue为债券评级 name为债券名称
+# code为交易代码 cv为转股价值 cpr为转股溢价率
+# balance为债券余额 issue为债券评级 name为债券名称
+# ytm为纯债到期收益率
 
 from iFinDPy import *
 from WindPy import w
@@ -169,6 +171,44 @@ class CPR:
         }
         return data_median
 
+    def get_number(self, start_date, end_date):
+        date_list = []
+        data_sum = []
+        data_ytm = []
+
+        for current_date in range((end_date - start_date).days + 1):
+            current_date = start_date + timedelta(days=current_date)
+            print(current_date)
+            date_list.append(str(current_date))
+
+            if current_date.weekday() in [5, 6]:
+                data_ytm.append(None)
+                data_sum.append(None)
+                continue
+
+            # 交易代码
+            code = self.get_code(current_date)
+            if code is None:
+                data_sum.append(None)
+                data_ytm.append(None)
+                continue
+            data_sum.append(len(code))
+
+            ytm = self.get_ytm(code, current_date)
+
+            ytm_sum = 0
+            for y in ytm:
+                if y is not None and y > 0:
+                    ytm_sum = ytm_sum + 1
+
+            data_ytm.append(ytm_sum)
+        data_number = {
+            "日期": date_list,
+            "纯债到期收益率>0的转债个数": data_ytm,
+            "转债总数": data_sum
+        }
+        return data_number
+
     def get_code(self, current_date):
         data_code = self.file_handler.get_json_data(current_date, "code")
         if not data_code:
@@ -229,6 +269,19 @@ class CPR:
 
         return data_issue
 
+    def get_ytm(self, code, current_date):
+        data_ytm = self.file_handler.get_json_data(current_date, "ytm")
+
+        if not data_ytm:
+            data_ytm = self.ths.get_ytm(current_date)
+            if not data_ytm:
+                data_ytm = self.wind.get_ytm(code, current_date)
+
+            if data_ytm:
+                self.file_handler.save_json_data(current_date, data_ytm, "ytm")
+
+        return data_ytm
+
 
 # 同花顺数据获取
 class Ths:
@@ -263,6 +316,25 @@ class Ths:
     def get_issue(self, code, current_date):
         data_issue = None
         return data_issue
+
+    def get_ytm(self, current_date):
+        str_date = current_date.strftime("%Y%m%d")
+        query = f'edate={str_date};zqlx=全部'
+        # 获取交易代码
+        # THS_DR('p00868','edate=20240122;zqlx=全部','p00868_f023:Y','format:list')
+        data_ytm = THS_DR('p00868', query, 'p00868_f023:Y', 'format:list')
+        if data_ytm.errorcode != 0:
+            print(f"iFind获取纯债到期收益率失败{data_ytm}")
+            return None
+        else:
+            new_ytm = []
+            data_ytm = data_ytm.data[0]['table']['p00868_f023']
+            for ytm in data_ytm:
+                if ytm == "--":
+                    new_ytm.append(None)
+                else:
+                    new_ytm.append(float(ytm))
+            return new_ytm
 
 
 # Wind数据获取
@@ -362,6 +434,10 @@ class Wind:
         else:
             return data_issue.Data[0]
 
+    def get_ytm(self, code, current_code):
+        data_ytm = None
+        return data_ytm
+
 
 # 主函数
 def main():
@@ -391,11 +467,14 @@ def main():
     end_date = datetime.date(2023, 6, 8)
 
     # 获取中位数
-    excel_name = "转股溢价率中位数"
-    data_median = cpr.get_median(start_date, end_date, data_consider)
+    # excel_name = "转股溢价率中位数"
+    # data = cpr.get_median(start_date, end_date, data_consider)
 
+    # 纯债到期收益率大于0的转债个数/当天所有转债数
+    excel_name = "纯债到期收益率个数"
+    data = cpr.get_number(start_date, end_date)
     # 保存数据
-    file_handler.save_to_excel(excel_name, data_median)
+    file_handler.save_to_excel(excel_name, data)
 
 
 if __name__ == '__main__':
