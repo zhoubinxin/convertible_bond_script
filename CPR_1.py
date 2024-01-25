@@ -2,6 +2,7 @@
 # balance为债券余额 issue为债券评级 name为债券名称
 # ytm为纯债到期收益率
 
+import io
 from iFinDPy import *
 from WindPy import w
 import datetime
@@ -342,8 +343,9 @@ class Wind:
     def login(self):
         original_stdout = sys.stdout
 
-        with open('dummy_file.txt', 'w') as dummy_file:
+        with io.StringIO() as dummy_file:
             sys.stdout = dummy_file
+            # output = dummy_file.getvalue()
 
             out_data = w.start()
 
@@ -409,7 +411,6 @@ class Wind:
         query = f"tradeDate={str_date}"
 
         data_balance = w.wss(code, "outstandingbalance", query)
-
         if data_balance.ErrorCode != 0:
             print(f'Wind获取债券余额失败：{data_balance}')
             return None
