@@ -17,7 +17,7 @@ from interval import Interval
 # 文件相关操作
 class FileHandler:
     def __init__(self):
-        self.directory_path = 'data'
+        self.directory_path = os.path.join(os.getcwd(), 'data')
         # 创建data目录，用于存储数据
         if not os.path.exists(self.directory_path):
             os.makedirs(self.directory_path)
@@ -63,7 +63,7 @@ class FileHandler:
 
     def get_json_data(self, json_name, key):
         json_name = json_name.strftime("%Y%m%d")
-        file_path = os.path.join(os.getcwd(), f'{self.directory_path}/{json_name}.json')
+        file_path = rf'{self.directory_path}\{json_name}.json'
 
         if os.path.exists(file_path):
             with open(file_path, 'r') as file:
@@ -75,7 +75,7 @@ class FileHandler:
 
     def save_json_data(self, json_name, data, key):
         json_name = json_name.strftime("%Y%m%d")
-        file_path = os.path.join(os.getcwd(), f'{self.directory_path}/{json_name}.json')
+        file_path = rf'{self.directory_path}\{json_name}.json'
 
         if not os.path.exists(file_path):
             with open(file_path, 'w') as file:
@@ -473,6 +473,7 @@ def main():
     # 纯债到期收益率大于0的转债个数/当天所有转债数
     excel_name = "纯债到期收益率个数"
     data = cpr.get_number(start_date, end_date)
+
     # 保存数据
     file_handler.save_to_excel(excel_name, data)
 
