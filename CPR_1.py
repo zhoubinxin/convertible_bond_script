@@ -2,7 +2,6 @@
 # balance为债券余额 issue为债券评级 name为债券名称
 # ytm为纯债到期收益率
 
-import io
 from iFinDPy import *
 from WindPy import w
 import datetime
@@ -13,6 +12,7 @@ import numpy as np
 import os
 import math
 from interval import Interval
+import io
 
 
 # 文件相关操作
@@ -48,8 +48,6 @@ class FileHandler:
                 df.to_excel(file_path, index=False)
                 print('数据保存成功')
                 break
-
-
             except Exception as e:
                 print(f"无法写入文件 '{excel_name}'.xlsx，请确保没有其他程序正在使用该文件。错误详情：{e}")
 
@@ -356,6 +354,17 @@ class Wind:
         else:
             print('Wind登录成功')
 
+    def data_processing(self, wind_data):
+        result = []
+        for data in wind_data:
+            # 判断数据是否为Nan
+            if math.isnan(data):
+                result.append(None)
+            else:
+                result.append(data)
+
+        return result
+
     def get_code(self, current_date):
         file_handler = FileHandler()
         query = f"date={current_date};sectorid=a101020600000000"
@@ -378,14 +387,7 @@ class Wind:
             print(f'Wind获取转股溢价率失败：{data_cpr}')
             return None
         else:
-            new_cpr = []
-            for cpr in data_cpr.Data[0]:
-                # 判断cpr是否为Nan
-                if not math.isnan(cpr):
-                    new_cpr.append(cpr)
-                else:
-                    new_cpr.append(None)
-            return new_cpr
+            return self.data_processing(data_cpr.Data[0])
 
     def get_cv(self, code, current_date):
         str_date = current_date.strftime("%Y%m%d")
@@ -397,14 +399,7 @@ class Wind:
             print(f'Wind获取转股价值失败：{data_cv}')
             return None
         else:
-            new_cv = []
-            for cv in data_cv.Data[0]:
-                # 判断cv是否为Nan
-                if not math.isnan(cv):
-                    new_cv.append(cv)
-                else:
-                    new_cv.append(None)
-            return new_cv
+            return self.data_processing(data_cv.Data[0])
 
     def get_balance(self, code, current_date):
         str_date = current_date.strftime("%Y%m%d")
@@ -415,13 +410,7 @@ class Wind:
             print(f'Wind获取债券余额失败：{data_balance}')
             return None
         else:
-            new_balance = []
-            for balance in data_balance.Data[0]:
-                if not math.isnan(balance):
-                    new_balance.append(balance)
-                else:
-                    new_balance.append(None)
-            return new_balance
+            return self.data_processing(data_balance.Data[0])
 
     def get_issue(self, code, current_date):
         str_date = current_date.strftime("%Y%m%d")
