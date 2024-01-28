@@ -1,5 +1,5 @@
 
-# iFind转股溢价率中位数获取
+# 转股溢价率中位数获取
 
 ## Python 环境配置
 
@@ -17,7 +17,7 @@
 
 1. [点击下载](https://www.jetbrains.com/pycharm/download/download-thanks.html?platform=windows&code=PCC)
 2. 注意要勾选 `Add "bin" folder to the PATH`
-![[pic/教程/1.png]]
+![](pic/1.png)
 
 3. 其他步骤点击 `next` 即可
 
@@ -28,56 +28,24 @@
 ## 运行 Python 程序
 
 1. 在 PyCharm 右上角点击文件 ->新建项目
-![[pic/教程/2.png]]
+![[pic/2.png]]
 
 2. 创建完成后，在当前目录下右键创建 Python 文件
-3. [下载或复制代码](https://github.com/ZhouBinxin/CPR/blob/master/iFind/iFind3.0.py)
-4. 安装必要的第三方库 (以下操作二选一)
-	1. 将鼠标放在爆红的代码上，点击弹出的安装软件包选项
-	2. 在命令行工具 (win+R 然后输入 cmd) 中执行以下代码
+3. [下载或复制代码](https://github.com/ZhouBinxin/CPR/blob/master/CPR_1.py)
+4. 安装必要的第三方库
 	```bash
-	# 安装 numpy
-	pip install numpy
-
-	# 安装 pandas
-	pip install pandas
+	pip install -r requirements.txt
 	```
 
 > 安装过慢可以考虑更换国内源 [pycharm如何更换国内镜像源](https://blog.csdn.net/Zenglih/article/details/106975435)
 
-```bash
-# 安装 numpy，使用清华大学镜像源
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple numpy
-
-# 安装 pandas，使用阿里云镜像源
-pip install -i https://mirrors.aliyun.com/pypi/simple pandas
-```
-
-1. 右键运行![300](3.png)
+5. 根据需要修改代码[根据需要修改代码](#程序相关)
+6. 右键运行![300](pic/3.png)
 
 ## 程序相关  
 
-1. 如果仅需要一天数据，需要将 `main()` 函数中的 `start_date` 和 `end_date` 设置为同一天
-2. `calculate_median()` 函数参数说明
-	1. `consider_value`、`consider_blance`、`consider_issue`
-		1. 当值为 `True` 时，表示筛选时使用该参数
-		2. 当值为 `False` 时，表示筛选时不使用该参数
-	2. 修改筛选范围  
-	```python  
-	# 转股价值
-    consider_value = True
-    max_value = 120
-    min_value = 100
-
-    # 债券余额范围
-    consider_balance = False
-    max_balance = 100
-    min_balance = 5
-
-    # 债券评级
-    consider_issue = False
-    issue = "AA+"
-	```
-	3. 确定筛选边界
-		1. 转股价值：value_condition = (not consider_value) or (**min_value < f027_value <= max_value**)
-		2. 债券余额：balance_condition = (not consider_balance) or (**min_balance < data_balance**)
+1. `username`中填写同花顺账号，`password`中填写同花顺密码
+2. `data_consider`中设置数据筛选的条件，
+3. 如果仅需要一天数据，需要将 `start_date` 和 `end_date` 设置为同一天
+4. `get_median()`函数用于获取转股溢价率中位数
+5. `get_number()`函数获取数据如下：纯债到期收益率大于0的转债个数/当天所有转债数
