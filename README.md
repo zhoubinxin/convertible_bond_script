@@ -4,8 +4,7 @@
 
 ## 使用指南
 
-1. [iFind](https://github.com/ZhouBinxin/CPR/blob/master/iFind.md)
-2. [Wind](https://github.com/ZhouBinxin/CPR/blob/master/Wind.md)
+1. [使用指南](https://github.com/ZhouBinxin/CPR/blob/master/CPR.md)
 
 ## 贡献
 
