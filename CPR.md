@@ -28,7 +28,7 @@
 ## 运行 Python 程序
 
 1. 在 PyCharm 右上角点击文件 ->新建项目
-![[pic/2.png]]
+	![](pic/2.png)
 
 2. 创建完成后，在当前目录下右键创建 Python 文件
 3. [下载或复制代码](https://github.com/ZhouBinxin/CPR/blob/master/CPR_1.py)
@@ -40,7 +40,8 @@
 > 安装过慢可以考虑更换国内源 [pycharm如何更换国内镜像源](https://blog.csdn.net/Zenglih/article/details/106975435)
 
 5. 根据需要修改代码[根据需要修改代码](#程序相关)
-6. 右键运行![300](pic/3.png)
+6. 右键运行
+	![300](pic/3.png)
 
 ## 程序相关  
 
