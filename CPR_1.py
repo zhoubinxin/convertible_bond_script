@@ -1,6 +1,6 @@
 # code为交易代码 cv为转股价值 cpr为转股溢价率
 # balance为债券余额 issue为债券评级 name为债券名称
-# ytm为纯债到期收益率
+# ytm为纯债到期收益率 rfp为涨跌幅
 
 from iFinDPy import *
 from WindPy import w
@@ -80,14 +80,14 @@ class FileHandler:
         if not os.path.exists(file_path):
             with open(file_path, 'w') as file:
                 json.dump({key: data}, file, indent=4, ensure_ascii=False)
-                print(f'json数据保存成功：{json_name} {key}')
+                # print(f'json数据保存成功：{json_name} {key}')
         else:
             with open(file_path, 'r') as file:
                 existing_data = json.load(file)
                 existing_data[key] = data
                 with open(file_path, 'w') as file:
                     json.dump(existing_data, file, indent=4, ensure_ascii=False)
-                    print(f'json数据更新成功：{json_name} {key}')
+                    # print(f'json数据更新成功：{json_name} {key}')
 
 
 class CPR:
@@ -172,6 +172,87 @@ class CPR:
         data_median = {
             "日期": date_list,
             "转股溢价率%": median
+        }
+        return data_median
+
+    # 涨跌幅中位数
+    def get_rfp_median(self, start_date, end_date, data_consider):
+        date_list = []
+        median = []
+
+        total_days = (end_date - start_date).days + 1
+        with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
+            for current_date in range(total_days):
+                current_date = start_date + timedelta(days=current_date)
+                pbar.set_postfix_str(current_date)
+                date_list.append(str(current_date))
+
+                if current_date.weekday() in [5, 6]:
+                    median.append(None)
+                    continue
+
+                # 交易代码
+                code = self.get_code(current_date)
+                if code is None:
+                    median.append(None)
+                    continue
+
+                # 涨跌幅
+                rfp = self.get_rfp(code, current_date)
+
+                length = len(code)
+                if rfp is None:
+                    median.append(None)
+                    continue
+
+                cv_condition = [True] * length
+                balance_condition = [True] * length
+                issue_condition = [True] * length
+                ytm_condition = [True] * length
+
+                if data_consider['consider_cv']:
+                    cv = self.get_cv(code, current_date)
+                    cv_range = data_consider['cv_range']
+                    for i in range(length):
+                        if cv[i] is None or not cv[i] in cv_range:
+                            cv_condition[i] = False
+
+                if data_consider['consider_balance']:
+                    balance = self.get_balance(code, current_date)
+                    balance_range = data_consider['balance_range']
+                    for i in range(length):
+                        if balance[i] is None or not balance[i] in balance_range:
+                            balance_condition[i] = False
+
+                if data_consider['consider_issue']:
+                    issue = self.get_issue(code, current_date)
+                    issue_range = data_consider['issue']
+                    for i in range(length):
+                        if issue[i] is None or issue[i] != issue_range:
+                            issue_condition[i] = False
+
+                if data_consider['consider_ytm']:
+                    ytm = self.get_ytm(code, current_date)
+                    ytm_range = data_consider['ytm_range']
+                    for i in range(length):
+                        if ytm[i] is None or not ytm[i] in ytm_range:
+                            ytm_condition[i] = False
+
+                rfp_list = []
+                for i in range(length):
+                    if rfp[i] is not None and cv_condition[i] and balance_condition[i] and issue_condition[i] and ytm_condition[i]:
+                        # print(code[i], cpr[i], cv[i], balance[i], issue[i])
+                        rfp_list.append(rfp[i])
+                if len(rfp_list) != 0:
+                    median.append(np.median(rfp_list))
+                else:
+                    median.append(None)
+
+                pbar.update(1)
+
+        data_median = {
+            "日期": date_list,
+            "涨跌幅%": median
         }
         return data_median
 
@@ -302,6 +383,18 @@ class CPR:
 
         return data_ytm
 
+    def get_rfp(self, code, current_date):
+        data_rfp = self.file_handler.get_json_data(current_date, "rfp")
+
+        if not data_rfp:
+            data_rfp = self.ths.get_rfp(current_date)
+            if not data_rfp:
+                data_rfp = self.wind.get_rfp(code, current_date)
+
+            if data_rfp:
+                self.file_handler.save_json_data(current_date, data_rfp, "rfp")
+
+        return data_rfp
 
 # 同花顺数据获取
 class Ths:
@@ -340,7 +433,6 @@ class Ths:
     def get_ytm(self, current_date):
         str_date = current_date.strftime("%Y%m%d")
         query = f'edate={str_date};zqlx=全部'
-        # 获取交易代码
         # THS_DR('p00868','edate=20240122;zqlx=全部','p00868_f023:Y','format:list')
         data_ytm = THS_DR('p00868', query, 'p00868_f023:Y', 'format:list')
         if data_ytm.errorcode != 0:
@@ -355,6 +447,24 @@ class Ths:
                 else:
                     new_ytm.append(float(ytm))
             return new_ytm
+
+    def get_rfp(self, current_date):
+        str_date = current_date.strftime("%Y%m%d")
+        query = f'edate={str_date};zqlx=全部'
+        # THS_DR('p00868', 'edate=20240129;zqlx=全部', 'p00868_f005:Y', 'format:list')
+        data_rfp = THS_DR('p00868', query, 'p00868_f005:Y', 'format:list')
+        if data_rfp.errorcode != 0:
+            print(f"iFind获取涨跌幅失败{data_rfp}")
+            return None
+        else:
+            new_rfp = []
+            data_rfp = data_rfp.data[0]['table']['p00868_f005']
+            for rfp in data_rfp:
+                if rfp == "--":
+                    new_rfp.append(None)
+                else:
+                    new_rfp.append(float(rfp))
+            return new_rfp
 
 
 # Wind数据获取
@@ -379,10 +489,11 @@ class Wind:
         result = []
         for data in wind_data:
             # 判断数据是否为Nan
-            if math.isnan(data):
-                result.append(None)
-            else:
+            if data is not None and not math.isnan(data):
                 result.append(data)
+            else:
+                result.append(None)
+
 
         return result
 
@@ -445,9 +556,13 @@ class Wind:
         else:
             return data_issue.Data[0]
 
-    def get_ytm(self, code, current_code):
+    def get_ytm(self, code, current_date):
         data_ytm = None
         return data_ytm
+
+    def get_rfp(self, code, curent_date):
+        data_rfp = None
+        return data_rfp
 
 
 # 主函数
@@ -477,14 +592,16 @@ def main():
     cpr.login(username, password)
 
     # 数据周期
-    start_date = datetime.date(2016, 1, 1)
-    end_date = datetime.date(2016, 12, 31)
+    start_date = datetime.date(2021, 2, 16)
+    end_date = datetime.date(2021, 2, 16)
 
     # 获取中位数
     # excel_name = "转股溢价率中位数"
     # data = cpr.get_median(start_date, end_date, data_consider)
+    # excel_name = "涨跌幅中位数"
+    # data = cpr.get_rfp_median(start_date, end_date, data_consider)
 
-    # 纯债到期收益率大于0的转债个数/当天所有转债数
+    # 纯债到期收益率大于x的转债个数/当天所有转债数
     excel_name = "纯债到期收益率个数"
     data = cpr.get_number(start_date, end_date, data_consider)
 
