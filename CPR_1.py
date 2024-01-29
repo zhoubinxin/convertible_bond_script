@@ -193,6 +193,7 @@ class CPR:
 
                 # 交易代码
                 code = self.get_code(current_date)
+                # print(code)
                 if code is None:
                     median.append(None)
                     continue
@@ -240,8 +241,9 @@ class CPR:
 
                 rfp_list = []
                 for i in range(length):
-                    if rfp[i] is not None and cv_condition[i] and balance_condition[i] and issue_condition[i] and ytm_condition[i]:
-                        # print(code[i], cpr[i], cv[i], balance[i], issue[i])
+                    if rfp[i] is not None and cv_condition[i] and balance_condition[i] and issue_condition[i] and \
+                            ytm_condition[i]:
+                        print(code[i], rfp[i],ytm[i])
                         rfp_list.append(rfp[i])
                 if len(rfp_list) != 0:
                     median.append(np.median(rfp_list))
@@ -396,6 +398,7 @@ class CPR:
 
         return data_rfp
 
+
 # 同花顺数据获取
 class Ths:
     # 登录函数
@@ -407,9 +410,16 @@ class Ths:
             print('同花顺登录成功')
 
     def get_code(self, current_date):
+        str_date = current_date.strftime("%Y%m%d")
+        query = f'edate={str_date};zqlx=可转债'
         # 获取交易代码
-        data_code = None
-        return data_code
+        data_code = THS_DR('p00868', query, 'jydm:Y', 'format:list')
+        if data_code.errorcode != 0:
+            print(f'同花顺获取交易代码失败{data_code}')
+            return None
+        else:
+            data_code = data_code.data[0]['table']['jydm']
+            return data_code
 
     def get_cpr(self, code, current_date):
         # 获取转股溢价率
@@ -432,7 +442,7 @@ class Ths:
 
     def get_ytm(self, current_date):
         str_date = current_date.strftime("%Y%m%d")
-        query = f'edate={str_date};zqlx=全部'
+        query = f'edate={str_date};zqlx=可转债'
         # THS_DR('p00868','edate=20240122;zqlx=全部','p00868_f023:Y','format:list')
         data_ytm = THS_DR('p00868', query, 'p00868_f023:Y', 'format:list')
         if data_ytm.errorcode != 0:
@@ -450,7 +460,7 @@ class Ths:
 
     def get_rfp(self, current_date):
         str_date = current_date.strftime("%Y%m%d")
-        query = f'edate={str_date};zqlx=全部'
+        query = f'edate={str_date};zqlx=可转债'
         # THS_DR('p00868', 'edate=20240129;zqlx=全部', 'p00868_f005:Y', 'format:list')
         data_rfp = THS_DR('p00868', query, 'p00868_f005:Y', 'format:list')
         if data_rfp.errorcode != 0:
@@ -493,7 +503,6 @@ class Wind:
                 result.append(data)
             else:
                 result.append(None)
-
 
         return result
 
@@ -592,18 +601,18 @@ def main():
     cpr.login(username, password)
 
     # 数据周期
-    start_date = datetime.date(2021, 2, 16)
-    end_date = datetime.date(2021, 2, 16)
+    start_date = datetime.date(2018, 1, 3)
+    end_date = datetime.date(2018, 1, 3)
 
     # 获取中位数
     # excel_name = "转股溢价率中位数"
     # data = cpr.get_median(start_date, end_date, data_consider)
-    # excel_name = "涨跌幅中位数"
-    # data = cpr.get_rfp_median(start_date, end_date, data_consider)
+    excel_name = "涨跌幅中位数2021"
+    data = cpr.get_rfp_median(start_date, end_date, data_consider)
 
     # 纯债到期收益率大于x的转债个数/当天所有转债数
-    excel_name = "纯债到期收益率个数"
-    data = cpr.get_number(start_date, end_date, data_consider)
+    # excel_name = "纯债到期收益率个数"
+    # data = cpr.get_number(start_date, end_date, data_consider)
 
     # 保存数据
     file_handler.save_to_excel(excel_name, data)
