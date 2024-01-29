@@ -175,7 +175,7 @@ class CPR:
         }
         return data_median
 
-    def get_number(self, start_date, end_date):
+    def get_number(self, start_date, end_date, data_consider):
         date_list = []
         data_sum = []
         data_ytm = []
@@ -199,13 +199,23 @@ class CPR:
                     data_sum.append(None)
                     data_ytm.append(None)
                     continue
-                data_sum.append(len(code))
+
+                length = len(code)
+                data_sum.append(length)
+
+                ytm_condition = [True] * length
 
                 ytm = self.get_ytm(code, current_date)
 
+                if data_consider['consider_ytm']:
+                    ytm_range = data_consider['ytm_range']
+                    for i in range(length):
+                        if ytm[i] is None or not ytm[i] in ytm_range:
+                            ytm_condition[i] = False
+
                 ytm_sum = 0
-                for y in ytm:
-                    if y is not None and y > 0:
+                for i in range(length):
+                    if ytm_condition[i]:
                         ytm_sum = ytm_sum + 1
 
                 data_ytm.append(ytm_sum)
@@ -214,7 +224,7 @@ class CPR:
 
         data_number = {
             "日期": date_list,
-            "纯债到期收益率>0的转债个数": data_ytm,
+            f"纯债到期收益率>{data_consider['ytm_range'].lower_bound}%的转债个数": data_ytm,
             "转债总数": data_sum
         }
         return data_number
@@ -448,14 +458,17 @@ def main():
 
     data_consider = {
         # 转股价值
-        "consider_cv": True,
+        "consider_cv": False,
         "cv_range": Interval(90, 100, lower_closed=True, upper_closed=True),
         # 债券余额，单位为亿
-        "consider_balance": True,
+        "consider_balance": False,
         "balance_range": Interval(3, 30, lower_closed=True, upper_closed=True),
         # 债券评级
-        "consider_issue": True,
-        "issue": "AA+"
+        "consider_issue": False,
+        "issue": "AA+",
+        # 纯债到期收益率
+        "consider_ytm": True,
+        "ytm_range": Interval(3, float('inf'), lower_closed=False),
     }
 
     cpr = CPR()
@@ -464,8 +477,8 @@ def main():
     cpr.login(username, password)
 
     # 数据周期
-    start_date = datetime.date(2023, 6, 8)
-    end_date = datetime.date(2023, 6, 30)
+    start_date = datetime.date(2016, 1, 1)
+    end_date = datetime.date(2016, 12, 31)
 
     # 获取中位数
     # excel_name = "转股溢价率中位数"
@@ -473,7 +486,7 @@ def main():
 
     # 纯债到期收益率大于0的转债个数/当天所有转债数
     excel_name = "纯债到期收益率个数"
-    data = cpr.get_number(start_date, end_date)
+    data = cpr.get_number(start_date, end_date, data_consider)
 
     # 保存数据
     file_handler.save_to_excel(excel_name, data)
