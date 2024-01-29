@@ -13,6 +13,7 @@ import os
 import math
 from interval import Interval
 import io
+from tqdm import tqdm
 
 
 # 文件相关操作
@@ -107,62 +108,66 @@ class CPR:
         date_list = []
         median = []
 
-        for current_date in range((end_date - start_date).days + 1):
-            current_date = start_date + timedelta(days=current_date)
-            print(current_date)
-            date_list.append(str(current_date))
+        total_days = (end_date - start_date).days + 1
+        with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
+            for current_date in range(total_days):
+                current_date = start_date + timedelta(days=current_date)
+                pbar.set_postfix_str(current_date)
+                date_list.append(str(current_date))
 
-            if current_date.weekday() in [5, 6]:
-                median.append(None)
-                continue
+                if current_date.weekday() in [5, 6]:
+                    median.append(None)
+                    continue
 
-            # 交易代码
-            code = self.get_code(current_date)
-            if code is None:
-                median.append(None)
-                continue
-            # 转股溢价率
-            cpr = self.get_cpr(code, current_date)
+                # 交易代码
+                code = self.get_code(current_date)
+                if code is None:
+                    median.append(None)
+                    continue
+                # 转股溢价率
+                cpr = self.get_cpr(code, current_date)
 
-            length = len(code)
-            if cpr is None:
-                median.append(None)
-                continue
+                length = len(code)
+                if cpr is None:
+                    median.append(None)
+                    continue
 
-            cv_condition = [True] * length
-            balance_condition = [True] * length
-            issue_condition = [True] * length
+                cv_condition = [True] * length
+                balance_condition = [True] * length
+                issue_condition = [True] * length
 
-            if data_consider['consider_cv']:
-                cv = self.get_cv(code, current_date)
-                cv_range = data_consider['cv_range']
+                if data_consider['consider_cv']:
+                    cv = self.get_cv(code, current_date)
+                    cv_range = data_consider['cv_range']
+                    for i in range(length):
+                        if cv[i] is None or not cv[i] in cv_range:
+                            cv_condition[i] = False
+
+                if data_consider['consider_balance']:
+                    balance = self.get_balance(code, current_date)
+                    balance_range = data_consider['balance_range']
+                    for i in range(length):
+                        if balance[i] is None or not balance[i] in balance_range:
+                            balance_condition[i] = False
+
+                if data_consider['consider_issue']:
+                    issue = self.get_issue(code, current_date)
+                    issue_range = data_consider['issue']
+                    for i in range(length):
+                        if issue[i] is None or issue[i] != issue_range:
+                            issue_condition[i] = False
+
+                cpr_list = []
                 for i in range(length):
-                    if cv[i] is None or not cv[i] in cv_range:
-                        cv_condition[i] = False
+                    if cpr[i] is not None and cv_condition[i] and balance_condition[i] and issue_condition[i]:
+                        # print(code[i], cpr[i], cv[i], balance[i], issue[i])
+                        cpr_list.append(cpr[i])
+                if len(cpr_list) != 0:
+                    median.append(np.median(cpr_list))
+                else:
+                    median.append(None)
 
-            if data_consider['consider_balance']:
-                balance = self.get_balance(code, current_date)
-                balance_range = data_consider['balance_range']
-                for i in range(length):
-                    if balance[i] is None or not balance[i] in balance_range:
-                        balance_condition[i] = False
-
-            if data_consider['consider_issue']:
-                issue = self.get_issue(code, current_date)
-                issue_range = data_consider['issue']
-                for i in range(length):
-                    if issue[i] is None or issue[i] != issue_range:
-                        issue_condition[i] = False
-
-            cpr_list = []
-            for i in range(length):
-                if cpr[i] is not None and cv_condition[i] and balance_condition[i] and issue_condition[i]:
-                    # print(code[i], cpr[i], cv[i], balance[i], issue[i])
-                    cpr_list.append(cpr[i])
-            if len(cpr_list) != 0:
-                median.append(np.median(cpr_list))
-            else:
-                median.append(None)
+                pbar.update(1)
 
         data_median = {
             "日期": date_list,
@@ -175,32 +180,38 @@ class CPR:
         data_sum = []
         data_ytm = []
 
-        for current_date in range((end_date - start_date).days + 1):
-            current_date = start_date + timedelta(days=current_date)
-            print(current_date)
-            date_list.append(str(current_date))
+        total_days = (end_date - start_date).days + 1
+        with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
+            for current_date in range(total_days):
+                current_date = start_date + timedelta(days=current_date)
+                pbar.set_postfix_str(current_date)
 
-            if current_date.weekday() in [5, 6]:
-                data_ytm.append(None)
-                data_sum.append(None)
-                continue
+                date_list.append(str(current_date))
 
-            # 交易代码
-            code = self.get_code(current_date)
-            if code is None:
-                data_sum.append(None)
-                data_ytm.append(None)
-                continue
-            data_sum.append(len(code))
+                if current_date.weekday() in [5, 6]:
+                    data_ytm.append(None)
+                    data_sum.append(None)
+                    continue
 
-            ytm = self.get_ytm(code, current_date)
+                # 交易代码
+                code = self.get_code(current_date)
+                if code is None:
+                    data_sum.append(None)
+                    data_ytm.append(None)
+                    continue
+                data_sum.append(len(code))
 
-            ytm_sum = 0
-            for y in ytm:
-                if y is not None and y > 0:
-                    ytm_sum = ytm_sum + 1
+                ytm = self.get_ytm(code, current_date)
 
-            data_ytm.append(ytm_sum)
+                ytm_sum = 0
+                for y in ytm:
+                    if y is not None and y > 0:
+                        ytm_sum = ytm_sum + 1
+
+                data_ytm.append(ytm_sum)
+
+                pbar.update(1)
+
         data_number = {
             "日期": date_list,
             "纯债到期收益率>0的转债个数": data_ytm,
@@ -454,7 +465,7 @@ def main():
 
     # 数据周期
     start_date = datetime.date(2023, 6, 8)
-    end_date = datetime.date(2023, 6, 8)
+    end_date = datetime.date(2023, 6, 30)
 
     # 获取中位数
     # excel_name = "转股溢价率中位数"
