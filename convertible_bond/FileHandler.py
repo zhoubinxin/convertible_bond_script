@@ -5,26 +5,24 @@ import datetime
 import json
 
 
-def create_file(file_name):
+def create_file(file_name="data"):
     """
+    创建文件夹，用于存储数据
 
-
-    :param file_name:
+    :param file_name: 文件夹名
     :return:
     """
     directory_path = os.path.join(os.getcwd(), file_name)
-    # 创建data目录，用于存储数据
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
-
-    return True
 
 
 def save_to_excel(excel_name, data):
     """
+    保存数据到Excel文件
 
-    :param excel_name:
-    :param data:
+    :param excel_name: Excel文件名
+    :param data: 数据
     :return:
     """
     file_path = os.path.join(os.getcwd(), f'{excel_name}.xlsx')
@@ -63,17 +61,20 @@ def save_to_excel(excel_name, data):
                 break
 
 
-def get_json_data(file_name, json_name, key):
+def get_json_data(json_name, key, file_name="data"):
     """
+    从JSON文件中获取数据
 
-    :param file_name:
-    :param json_name:
-    :param key:
-    :return:
+    :param json_name: json文件名
+    :param key: 键名
+    :param file_name: 文件夹名
+    :return: key对应的值
     """
     create_file(file_name)
     directory_path = os.path.join(os.getcwd(), file_name)
-    json_name = json_name.strftime("%Y%m%d")
+    if isinstance(json_name, datetime.datetime):
+        # 如果 json_name 是日期时间对象，则将其转换为字符串
+        json_name = json_name.strftime("%Y%m%d")
     file_path = rf'{directory_path}\{json_name}.json'
 
     if os.path.exists(file_path):
@@ -85,18 +86,21 @@ def get_json_data(file_name, json_name, key):
     return None
 
 
-def save_json_data(file_name, json_name, data, key):
+def save_json_data(json_name, data, key, file_name="data"):
     """
+    将数据保存到JSON文件中
 
-    :param file_name:
-    :param json_name:
-    :param data:
-    :param key:
+    :param json_name: json文件名
+    :param data: 要保存的数据
+    :param key: 键名
+    :param file_name: 文件夹名
     :return:
     """
     create_file(file_name)
     directory_path = os.path.join(os.getcwd(), file_name)
-    json_name = json_name.strftime("%Y%m%d")
+    if isinstance(json_name, datetime.datetime):
+        # 如果 json_name 是日期时间对象，则将其转换为字符串
+        json_name = json_name.strftime("%Y%m%d")
     file_path = rf'{directory_path}\{json_name}.json'
 
     if not os.path.exists(file_path):
