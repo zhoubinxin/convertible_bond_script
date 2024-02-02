@@ -1,4 +1,6 @@
 interval==1.0.0
 numpy==1.26.3
 pandas==2.2.0
+Requests==2.31.0
+SQLAlchemy==2.0.25
 tqdm==4.66.1
