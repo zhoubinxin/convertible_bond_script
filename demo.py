@@ -8,8 +8,10 @@ from convertible_bond import filehandler as fh
 
 def main():
     # 数据周期
-    start_date = datetime.date(2018, 1, 1)
-    end_date = datetime.date(2018, 12, 31)
+    start_date = datetime.date(2020, 1, 1)
+    end_date = datetime.date(2020, 12, 31)
+
+    excel_name = "2020"
 
     data_consider = {
         # 转股价值
@@ -38,7 +40,7 @@ def main():
             str_date = current_date.strftime('%Y%m%d')
             pbar.set_postfix_str(str_date)
 
-            date_list.append(str_date)
+            date_list.append(current_date)
 
             if current_date.weekday() in [5, 6]:
                 data_ytm.append(None)
@@ -47,14 +49,14 @@ def main():
 
             # 交易代码
             code = mysql.get_data_from_mysql(str_date, "代码")
-            if code:
+            if code == -1:
+                print(f"\n{current_date} 数据缺失")
+                data_sum.append(None)
+                data_ytm.append(None)
+            elif code:
                 data_sum.append(len(code))
                 ytm = mysql.get_data_from_mysql(str_date, "代码", data_consider)
                 data_ytm.append(len(ytm))
-            elif code == -1:
-                print(f"{str_date} 数据缺失")
-                data_sum.append(None)
-                data_ytm.append(None)
 
             pbar.update(1)
 
@@ -64,7 +66,7 @@ def main():
         "转债总数": data_sum
     }
 
-    fh.save_to_excel("纯债到期收益率个数", data_dict)
+    fh.save_to_excel(excel_name, data_dict)
 
 
 if __name__ == '__main__':
