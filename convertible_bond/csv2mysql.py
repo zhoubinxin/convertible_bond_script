@@ -22,7 +22,7 @@ engine = create_engine('mysql+pymysql://{user}:{password}@{host}/{database}'.for
 inspector = inspect(engine)
 
 # 遍历文件夹中的CSV文件
-folder_path = r'D:\Code\Convertible_bonds\data'
+folder_path = r'D:\Code\convertible_bond\Convertible_bonds\data'
 for file in os.listdir(folder_path):
     if file.endswith('.csv'):
         table_name = file.split('.')[0]  # 使用文件名作为表名
