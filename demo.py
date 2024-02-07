@@ -2,14 +2,13 @@
 import datetime
 from tqdm import tqdm
 from convertible_bond import convertible_bond as cb
-from convertible_bond import mysqlhandler as mysql
 from convertible_bond import filehandler as fh
 
 
 def main():
     # 数据周期
     start_date = datetime.date(2020, 1, 1)
-    end_date = datetime.date(2020, 12, 31)
+    end_date = datetime.date(2020, 1, 31)
 
     excel_name = "2020"
 
@@ -28,45 +27,27 @@ def main():
         "ytm_range": "`纯债到期收益率(%)` > 3",
     }
 
-    date_list = []
-    data_sum = []
-    data_ytm = []
+    data_list = [
+        ("日期", "纯债到期收益率 > 3% 的转债个数", "转债总数")
+    ]
 
     total_days = (end_date - start_date).days + 1
     with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
         for current_date in range(total_days):
             current_date = start_date + datetime.timedelta(days=current_date)
 
+            if current_date.weekday() in [5, 6]:
+                data_list.append((str(current_date), None, None))
+                continue
+
             str_date = current_date.strftime('%Y%m%d')
             pbar.set_postfix_str(str_date)
 
-            date_list.append(current_date)
-
-            if current_date.weekday() in [5, 6]:
-                data_ytm.append(None)
-                data_sum.append(None)
-                continue
-
-            # 交易代码
-            code = mysql.get_data_from_mysql(str_date, "代码")
-            if code == -1:
-                print(f"\n{current_date} 数据缺失")
-                data_sum.append(None)
-                data_ytm.append(None)
-            elif code:
-                data_sum.append(len(code))
-                ytm = mysql.get_data_from_mysql(str_date, "代码", data_consider)
-                data_ytm.append(len(ytm))
-
+            data_tuple = cb.calculate_ratio(current_date, data_consider)
+            data_list.append(data_tuple)
             pbar.update(1)
 
-    data_dict = {
-        "日期": date_list,
-        f"纯债到期收益率 > 3% 的转债个数": data_ytm,
-        "转债总数": data_sum
-    }
-
-    fh.save_to_excel(excel_name, data_dict)
+    fh.save_tuple_to_excel(excel_name, data_list)
 
 
 if __name__ == '__main__':

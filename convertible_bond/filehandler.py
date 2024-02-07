@@ -61,6 +61,45 @@ def save_to_excel(excel_name, data):
                 break
 
 
+def save_tuple_to_excel(excel_name, data):
+    """
+    将元组数据保存到Excel文件中。
+
+    :param excel_name: Excel文件名
+    :param data: 数据
+    :return:
+    """
+    file_path = os.path.join(os.getcwd(), f'{excel_name}.xlsx')
+    df = pd.DataFrame(data[1:], columns=data[0])
+    max_attempts = 5
+    attempt = 1
+
+    while attempt <= max_attempts:
+        try:
+            # 检查文件是否存在
+            if os.path.exists(file_path):
+                existing_data = pd.read_excel(file_path)
+                df = pd.concat([existing_data, df], ignore_index=True)
+
+            # 将数据写入 Excel 文件
+            with pd.ExcelWriter(file_path, mode='w', engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+
+            print('数据保存成功')
+            break
+        except Exception as e:
+            print(f"无法写入文件 '{excel_name}'.xlsx，请确保没有其他程序正在使用该文件。错误详情：{e}")
+
+            if attempt < max_attempts:
+                print(f"尝试重新写入，剩余尝试次数: {max_attempts - attempt}")
+                attempt += 1
+                time.sleep(5)
+            else:
+                print("写入文件失败")
+                print(data)
+                break
+
+
 def get_json_data(json_name, key, file_name="data"):
     """
     从JSON文件中获取数据
