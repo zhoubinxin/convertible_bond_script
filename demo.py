@@ -7,8 +7,8 @@ from convertible_bond import filehandler as fh
 
 def main():
     # 数据周期
-    start_date = datetime.date(2020, 1, 1)
-    end_date = datetime.date(2020, 1, 31)
+    start_date = datetime.date(2018, 1, 1)
+    end_date = datetime.date(2024, 2, 7)
 
     excel_name = "2020"
 
