@@ -36,10 +36,6 @@ def main():
         for current_date in range(total_days):
             current_date = start_date + datetime.timedelta(days=current_date)
 
-            if current_date.weekday() in [5, 6]:
-                data_list.append((str(current_date), None, None))
-                continue
-
             str_date = current_date.strftime('%Y%m%d')
             pbar.set_postfix_str(str_date)
 

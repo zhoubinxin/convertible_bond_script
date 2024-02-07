@@ -2,6 +2,16 @@ from . import mysqlhandler as mysql
 
 
 def calculate_ratio(current_date, data_consider):
+    """
+    计算比率
+
+    :param current_date: 日期
+    :param data_consider: sql
+    :return: 元组(日期, 筛选后剩余数量, 总数)
+    """
+    if current_date.weekday() in [5, 6]:
+        return str(current_date), None, None
+
     total = None
     remain = None
 
