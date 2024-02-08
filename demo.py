@@ -8,24 +8,16 @@ from convertible_bond import filehandler as fh
 def main():
     # 数据周期
     start_date = datetime.date(2018, 1, 1)
-    end_date = datetime.date(2024, 2, 7)
+    end_date = datetime.date(2018, 1, 1)
 
-    excel_name = "2020"
+    if start_date == end_date:
+        excel_name = "" + str(start_date)
+    else:
+        excel_name = "" + str(start_date) + "~" + str(end_date)
 
-    data_consider = {
-        # 转股价值
-        "consider_cv": False,
-        "cv_range": "",
-        # 债券余额，单位为亿
-        "consider_balance": False,
-        "balance_range": "",
-        # 债券评级
-        "consider_issue": False,
-        "issue": "",
-        # 纯债到期收益率
-        "consider_ytm": True,
-        "ytm_range": "`纯债到期收益率(%)` > 3",
-    }
+    conditions = [
+        "`纯债到期收益率(%)` > 3"
+    ]
 
     data_list = [
         ("日期", "纯债到期收益率 > 3% 的转债个数", "转债总数")
@@ -39,7 +31,7 @@ def main():
             str_date = current_date.strftime('%Y%m%d')
             pbar.set_postfix_str(str_date)
 
-            data_tuple = cb.calculate_ratio(current_date, data_consider)
+            data_tuple = cb.calculate_ratio(current_date, conditions)
             data_list.append(data_tuple)
             pbar.update(1)
 

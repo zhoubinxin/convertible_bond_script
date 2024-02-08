@@ -1,8 +1,7 @@
 import mysql.connector
-from interval import Interval
 
 
-def get_data_from_mysql(table, column, condition=None):
+def get_data_from_mysql(table, column, conditions=None):
     # 建立数据库连接
     connection = mysql.connector.connect(
         host='localhost',
@@ -19,17 +18,9 @@ def get_data_from_mysql(table, column, condition=None):
 
     # 构建查询语句
     query = f"SELECT `{column}` FROM `{table}`"
-    where_clause = []
 
-    # 添加过滤条件
-    if condition:
-        if condition["consider_cv"]:
-            where_clause.append(f"`转股价格` BETWEEN {condition['cv_range']}")
-        if condition["consider_ytm"]:
-            where_clause.append(condition['ytm_range'])
-
-    if where_clause:
-        query += " WHERE " + " AND ".join(where_clause)
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
 
     # print(query)
     # 执行查询语句
