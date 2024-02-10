@@ -2,6 +2,14 @@ import mysql.connector
 
 
 def get_data_from_mysql(table, column, conditions=None):
+    """
+    从MySQL数据库中获取数据
+
+    :param table: 数据表
+    :param column: 列
+    :param conditions: 条件，默认为None
+    :return: 查询到的数据，如果数据表不存在则返回-1
+    """
     # 建立数据库连接
     connection = mysql.connector.connect(
         host='localhost',
@@ -40,6 +48,13 @@ def get_data_from_mysql(table, column, conditions=None):
 
 
 def check_table_exists(connection, table):
+    """
+    检查数据表是否存在
+
+    :param connection: 数据库连接
+    :param table: 数据表
+    :return: 数据表存在返回True，否则返回False
+    """
     cursor = connection.cursor()
     query = f"SHOW TABLES LIKE '{table}'"
     # print(query)
