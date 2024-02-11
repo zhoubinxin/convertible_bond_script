@@ -1,13 +1,14 @@
 import mysql.connector
 
 
-def get_data_from_mysql(table, column, conditions=None):
+def get_data_from_mysql(table, column, conditions=None, database='convertible_bond'):
     """
     从MySQL数据库中获取数据
 
     :param table: 数据表
     :param column: 列
     :param conditions: 条件，默认为None
+    :param database: 数据库名，默认为convertible_bond
     :return: 查询到的数据，如果数据表不存在则返回-1
     """
     # 建立数据库连接
@@ -15,7 +16,7 @@ def get_data_from_mysql(table, column, conditions=None):
         host='localhost',
         user='root',
         password='123456',
-        database='convertible_bond'
+        database=database
     )
 
     if not check_table_exists(connection, table):
