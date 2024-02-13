@@ -11,20 +11,6 @@ def get_data_from_mysql(table, column, conditions=None, database='convertible_bo
     :param database: 数据库名，默认为convertible_bond
     :return: 查询到的数据，如果数据表不存在则返回-1
     """
-    # 建立数据库连接
-    connection = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='123456',
-        database=database
-    )
-
-    if not check_table_exists(connection, table):
-        return -1
-
-    # 创建游标
-    cursor = connection.cursor()
-
     # 构建查询语句
     query = f"SELECT `{column}` FROM `{table}`"
 
@@ -32,18 +18,22 @@ def get_data_from_mysql(table, column, conditions=None, database='convertible_bo
         query += " WHERE " + " AND ".join(conditions)
 
     # print(query)
-    # 执行查询语句
-    cursor.execute(query)
 
-    # 获取查询结果
-    results = cursor.fetchall()
+    # 使用上下文管理器处理数据库连接和游标
+    with mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='123456',
+            database=database
+    ) as connection:
+        if not check_table_exists(connection, table):
+            return -1
 
-    # 将查询结果转换为列表
-    data = [row[0] for row in results]
-
-    # 关闭游标对象和连接对象
-    cursor.close()
-    connection.close()
+        with connection.cursor() as cursor:
+            # 执行查询语句
+            cursor.execute(query)
+            results = cursor.fetchall()
+            data = [row[0] for row in results]
 
     return data
 
@@ -56,11 +46,10 @@ def check_table_exists(connection, table):
     :param table: 数据表
     :return: 数据表存在返回True，否则返回False
     """
-    cursor = connection.cursor()
     query = f"SHOW TABLES LIKE '{table}'"
-    # print(query)
-    cursor.execute(query)
-    result = cursor.fetchone()
-    cursor.close()
+
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        result = cursor.fetchone()
 
     return result is not None
