@@ -14,10 +14,11 @@ def main():
     end_date = datetime.date(2024, 2, 15)
 
     # 文件名
+    file_name = ""
     if start_date == end_date:
-        excel_name = "" + str(start_date)
+        excel_name = file_name + str(start_date)
     else:
-        excel_name = "" + str(start_date) + "~" + str(end_date)
+        excel_name = file_name + str(start_date) + "~" + str(end_date)
 
     # 筛选条件
     conditions = [
