@@ -9,7 +9,7 @@ from convertible_bond import filehandler as fh
 
 def main():
     # 起始日期
-    start_date = datetime.date(2019, 1, 1)
+    start_date = datetime.date(2024, 2, 11)
     # 结束日期
     end_date = datetime.date(2024, 2, 15)
 

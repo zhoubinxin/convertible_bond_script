@@ -1,4 +1,5 @@
 import numpy as np
+from chinese_calendar import is_workday
 
 from . import mysqlhandler as mysql
 
@@ -11,7 +12,7 @@ def calculate_ratio(current_date, conditions):
     :param conditions: sql
     :return: 元组(日期, 筛选后剩余数量, 总数)
     """
-    if current_date.weekday() in [5, 6]:
+    if not is_trade_day(current_date):
         return str(current_date), None, None
 
     str_date = current_date.strftime('%Y%m%d')
@@ -38,7 +39,7 @@ def calculate_math(current_date, column, conditions, model='median'):
     :param model: median,avg
     :return: 元组(日期, 中位数)
     """
-    if current_date.weekday() in [5, 6]:
+    if not is_trade_day(current_date):
         return str(current_date), None
 
     str_date = current_date.strftime('%Y%m%d')
@@ -64,3 +65,16 @@ def calculate_math(current_date, column, conditions, model='median'):
             print(data)
         except Exception as e:
             print('\n', '出现异常', e)
+
+
+def is_trade_day(date):
+    """
+    判断是否是交易日
+
+    :param date:
+    :return:
+    """
+    if is_workday(date):
+        if date.isoweekday() < 6:
+            return True
+    return False
