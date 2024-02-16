@@ -12,7 +12,7 @@ def get_data_from_mysql(table, column, conditions=None, database='convertible_bo
     :return: 查询到的数据，如果数据表不存在则返回-1
     """
     # 构建查询语句
-    query = f"SELECT `{column}` FROM `{table}`"
+    query = f"SELECT `{column}` FROM `{table}` where `{column}` != '--';"
 
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
