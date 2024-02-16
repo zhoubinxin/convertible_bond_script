@@ -31,13 +31,13 @@ def calculate_ratio(current_date, conditions):
 
 def calculate_math(current_date, column, conditions, model='median'):
     """
-    计算中位数
+    计算中位数、平均数
 
     :param current_date: 日期
-    :param column: 需要计算中位数的列
+    :param column: 需要计算的列
     :param conditions: sql
     :param model: median,avg
-    :return: 元组(日期, 中位数)
+    :return: 元组(日期, 中位数/平均数)
     """
     if not is_trade_day(current_date):
         return str(current_date), None
@@ -69,8 +69,8 @@ def is_trade_day(date):
     """
     判断是否是交易日
 
-    :param date:
-    :return:
+    :param date: 日期
+    :return: 交易日返回True, 非交易日返回False
     """
     if is_workday(date):
         if date.isoweekday() < 6:
