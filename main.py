@@ -9,9 +9,9 @@ from convertible_bond import filehandler as fh
 
 def main():
     # 起始日期
-    start_date = datetime.date(2018, 1, 1)
+    start_date = datetime.date(2019, 1, 1)
     # 结束日期
-    end_date = datetime.date(2018, 1, 31)
+    end_date = datetime.date(2024, 2, 15)
 
     # 文件名
     if start_date == end_date:
@@ -27,7 +27,8 @@ def main():
     # 数据列表
     data_list = [
         # ("日期", "纯债到期收益率 > 3% 的转债个数", "转债总数")
-        ("日期", "中位数")
+        # ("日期", "中位数")
+        ("日期", "平均数")
     ]
 
     total_days = (end_date - start_date).days + 1
@@ -40,7 +41,10 @@ def main():
 
             # 计算数据
             # data_tuple = cb.calculate_ratio(current_date, conditions)
-            data_tuple = cb.calculate_median(current_date, "前收盘价", conditions)
+            # 计算中位数
+            # data_tuple = cb.calculate_math(current_date, "涨跌幅(%)", conditions, 'median')
+            # 计算平均数
+            data_tuple = cb.calculate_math(current_date, "纯债到期收益率(%)", conditions, 'avg')
             data_list.append(data_tuple)
             pbar.update(1)
 
