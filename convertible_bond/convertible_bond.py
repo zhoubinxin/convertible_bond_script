@@ -18,13 +18,13 @@ def calculate_ratio(current_date, conditions):
     str_date = current_date.strftime('%Y%m%d')
 
     # 交易代码
-    code = mysql.get_data_from_mysql(str_date, "代码")
+    code = mysql.get_data_from_mysql(str_date, "代码", conditions['ratio_total'])
     if code == -1:
         print(f"\n{current_date} 数据缺失")
         return str(current_date), None, None
     elif code:
         total = len(code)
-        data_remain = mysql.get_data_from_mysql(str_date, "代码", conditions)
+        data_remain = mysql.get_data_from_mysql(str_date, "代码", conditions['main'])
         remain = len(data_remain)
         return str(current_date), remain, total
 
@@ -45,26 +45,24 @@ def calculate_math(current_date, column, conditions, model='median'):
     str_date = current_date.strftime('%Y%m%d')
 
     # 交易代码
-    code = mysql.get_data_from_mysql(str_date, "代码")
-    if code == -1:
+    data = mysql.get_data_from_mysql(str_date, column, conditions)
+    if data == -1:
         print(f"\n{current_date} 数据缺失")
         return str(current_date), None
-    elif code:
-        data = mysql.get_data_from_mysql(str_date, column, conditions)
-        # 判断数据是否为空
-        if len(data) == 0:
-            return str(current_date), '-'
+    # 判断数据是否为空
+    elif len(data) == 0:
+        return str(current_date), '-'
 
-        try:
-            if model == 'median':
-                return str(current_date), np.median(data)
-            elif model == 'avg':
-                return str(current_date), np.mean(data)
-        except np.core._exceptions._UFuncNoLoopError as e:
-            print('\n', e)
-            print(data)
-        except Exception as e:
-            print('\n', '出现异常', e)
+    try:
+        if model == 'median':
+            return str(current_date), np.median(data)
+        elif model == 'avg':
+            return str(current_date), np.mean(data)
+    except np.core._exceptions._UFuncNoLoopError as e:
+        print('\n', e)
+        print(data)
+    except Exception as e:
+        print('\n', '出现异常', e)
 
 
 def is_trade_day(date):
