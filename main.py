@@ -13,11 +13,13 @@ def main():
     # 结束日期
     end_date = datetime.date(2023, 5, 15)
 
-    # 0 -> calculate_ratio
-    # 1 -> median
-    # 2 -> avg
-    flag = 0
-    # 计算median、avg需要填入列名
+    # calculate_ratio
+    #   ratio
+    # calculate_math:
+    #   median  计算中位数
+    #   avg     计算平均数
+    ctype = "max"
+    # 使用 calculate_math 函数需要填入列名
     column = "涨跌幅(%)"
 
     # 文件名
@@ -35,11 +37,11 @@ def main():
         ]
     }
 
-    name_list = [
-        ("日期", "纯债到期收益率 > 3% 的转债个数", "转债总数"),
-        ("日期", "中位数"),
-        ("日期", "平均数")
-    ]
+    name_list = {
+        "ratio": ("日期", "纯债到期收益率 > 3% 的转债个数", "转债总数"),
+        "median": ("日期", "中位数"),
+        "avg": ("日期", "平均数"),
+    }
 
     # 文件名附加日期
     if start_date == end_date:
@@ -47,12 +49,12 @@ def main():
     else:
         excel_name = file_name + str(start_date) + "~" + str(end_date)
 
-    # 增加列名
-    data_list = [name_list[flag]]
-
-    if flag == 1 or flag == 2:
-        if column == "":
-            column = input("请输入列名：")
+    # 设置列名
+    try:
+        data_list = [name_list[ctype]]
+    except KeyError:
+        print("不存在方法：", ctype)
+        return
 
     total_days = (end_date - start_date).days + 1
     with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
@@ -63,14 +65,12 @@ def main():
             pbar.set_postfix_str(str_date)
 
             # 计算数据
-            if flag == 0:
+            if ctype == "ratio":
                 data_tuple = cb.calculate_ratio(current_date, conditions)
-            if flag == 1:
-                # 计算中位数
-                data_tuple = cb.calculate_math(current_date, column, conditions['main'], 'median')
-            if flag == 2:
-                # 计算平均数
-                data_tuple = cb.calculate_math(current_date, column, conditions['main'], 'avg')
+            else:
+                if column == "":
+                    column = input("请输入列名：")
+                data_tuple = cb.calculate_math(current_date, column, conditions['main'], ctype)
 
             data_list.append(data_tuple)
             pbar.update(1)
