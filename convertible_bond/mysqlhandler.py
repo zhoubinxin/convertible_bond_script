@@ -56,3 +56,20 @@ def check_table_exists(connection, table):
         result = cursor.fetchone()
 
     return result is not None
+
+
+def is_complete(current_date):
+    """
+    检查数据表是否完整
+
+    :return: 返回不完整的数据表
+    """
+    # 筛选条件
+    conditions = [
+        "代码 is NULL or 代码 == '--'",
+    ]
+
+    code = get_data_from_mysql(current_date, "代码")
+    if code != -1 and len(code) > 0:
+        print(f"{current_date} 数据表不完整")
+        return str(current_date), len(code)

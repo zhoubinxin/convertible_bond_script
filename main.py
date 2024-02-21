@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from convertible_bond import convertible_bond as cb
 from convertible_bond import filehandler as fh
+from convertible_bond import mysqlhandler as mysql
 
 
 def main():
@@ -18,7 +19,9 @@ def main():
     # calculate_math:
     #   median  计算中位数
     #   avg     计算平均数
-    ctype = "max"
+    # is_complete
+    #   check   检查数据表是否完整
+    ctype = "check"
     # 使用 calculate_math 函数需要填入列名
     column = "涨跌幅(%)"
 
@@ -41,6 +44,7 @@ def main():
         "ratio": ("日期", "纯债到期收益率 > 3% 的转债个数", "转债总数"),
         "median": ("日期", "中位数"),
         "avg": ("日期", "平均数"),
+        "check": ("数据表", "缺失数据"),
     }
 
     # 文件名附加日期
@@ -67,12 +71,15 @@ def main():
             # 计算数据
             if ctype == "ratio":
                 data_tuple = cb.calculate_ratio(current_date, conditions)
+            elif ctype == "check":
+                data_tuple = mysql.is_complete(current_date)
             else:
                 if column == "":
                     column = input("请输入列名：")
                 data_tuple = cb.calculate_math(current_date, column, conditions['main'], ctype)
 
-            data_list.append(data_tuple)
+            if data_tuple:
+                data_list.append(data_tuple)
             pbar.update(1)
 
     # 保存数据到Excel
