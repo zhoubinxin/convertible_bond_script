@@ -69,7 +69,7 @@ def is_complete(current_date):
         "代码 is NULL or 代码 == '--'",
     ]
 
-    code = get_data_from_mysql(current_date, "代码")
+    code = get_data_from_mysql(current_date, "代码", conditions)
     if code != -1 and len(code) > 0:
         print(f"{current_date} 数据表不完整")
         return str(current_date), len(code)

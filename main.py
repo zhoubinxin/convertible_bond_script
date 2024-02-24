@@ -83,7 +83,8 @@ def main():
             pbar.update(1)
 
     # 保存数据到Excel
-    fh.save_tuple_to_excel(excel_name, data_list)
+    if len(data_list) > 1:
+        fh.save_tuple_to_excel(excel_name, data_list)
 
 
 if __name__ == '__main__':
