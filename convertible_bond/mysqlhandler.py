@@ -1,7 +1,7 @@
 import mysql.connector
 
 
-def get_data_from_mysql(table, column, conditions=None, database='convertible_bond'):
+def get_data_from_mysql(table, column, conditions, database='convertible_bond'):
     """
     从MySQL数据库中获取数据
 
@@ -12,12 +12,26 @@ def get_data_from_mysql(table, column, conditions=None, database='convertible_bo
     :return: 查询到的数据，如果数据表不存在则返回-1
     """
     # 构建查询语句
-    if conditions is None:
-        conditions = []
     query = f"SELECT `{column}` FROM `{table}`"
 
-    conditions.append(f"`{column}` is not null")
-    if conditions:
+    if 'main' in conditions:
+        conditions['main'].append(f"`{column}` is not null")
+        query += " WHERE " + " AND ".join(conditions['main'])
+
+        # 排序
+        if 'sort' in conditions and conditions['sort'] is not None:
+            query += f" ORDER BY `{conditions['sort']}`"
+        if 'sort_type' in conditions and conditions['sort_type'] == 'desc':
+            query += " desc"
+
+        # 限制返回数量
+        if 'limit' in conditions and conditions['limit'] != -1:
+            if conditions['limit'] <= 0:
+                print(" limit 必须大于 0")
+            else:
+                query += f" LIMIT {conditions['limit']}"
+    else:
+        conditions.append(f"`{column}` is not null")
         query += " WHERE " + " AND ".join(conditions)
 
     # print(query)

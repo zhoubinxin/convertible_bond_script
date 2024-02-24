@@ -24,7 +24,7 @@ def calculate_ratio(current_date, conditions):
         return str(current_date), None, None
     elif code:
         total = len(code)
-        data_remain = mysql.get_data_from_mysql(str_date, "代码", conditions['main'])
+        data_remain = mysql.get_data_from_mysql(str_date, "代码", conditions)
         remain = len(data_remain)
         return str(current_date), remain, total
 
@@ -57,6 +57,7 @@ def calculate_math(current_date, column, conditions, model='median'):
         if model == 'median':
             return str(current_date), np.median(data)
         elif model == 'avg':
+            # print('\n', data)
             return str(current_date), np.mean(data)
     except np.core._exceptions._UFuncNoLoopError as e:
         print('\n', e)

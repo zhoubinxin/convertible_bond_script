@@ -12,7 +12,7 @@ def main():
     # 起始日期
     start_date = datetime.date(2023, 2, 1)
     # 结束日期
-    end_date = datetime.date(2023, 5, 15)
+    end_date = datetime.date(2023, 2, 3)
 
     # calculate_ratio
     #   ratio
@@ -21,7 +21,7 @@ def main():
     #   avg     计算平均数
     # is_complete
     #   check   检查数据表是否完整
-    ctype = "check"
+    ctype = "avg"
     # 使用 calculate_math 函数需要填入列名
     column = "涨跌幅(%)"
 
@@ -35,6 +35,14 @@ def main():
             "`纯债到期收益率(%)` > 3",
             "((`转换价值` - `纯债价值`) / `纯债价值`) > 0.2"
         ],
+        # 按 sort 进行排序，默认为升序，填 None 则不排序
+        "sort": "涨跌幅(%)",
+        # desc 表示降序
+        "sort_type": "",
+        # limit 表示限制返回的行数，-1 表示不限制
+        "limit": 10,
+        # 以上参数对 calculate_ratio 函数返回的转债总数不产生影响
+
         "ratio_total": [
             "债券类型 = '可转债'"
         ]
@@ -76,7 +84,7 @@ def main():
             else:
                 if column == "":
                     column = input("请输入列名：")
-                data_tuple = cb.calculate_math(current_date, column, conditions['main'], ctype)
+                data_tuple = cb.calculate_math(current_date, column, conditions, ctype)
 
             if data_tuple:
                 data_list.append(data_tuple)
