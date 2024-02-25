@@ -9,7 +9,10 @@ def get_data_from_mysql(table, column, conditions, database='convertible_bond'):
     :param column: 列
     :param conditions: 条件，默认为None
     :param database: 数据库名，默认为convertible_bond
-    :return: 查询到的数据，如果数据表不存在则返回-1
+    :return: 查询到的数据
+            如果数据表不存在则返回-1
+            如果列不存在则返回-2
+            其他异常返回-3
     """
     # 构建查询语句
     query = f"SELECT `{column}` FROM `{table}`"
@@ -43,14 +46,31 @@ def get_data_from_mysql(table, column, conditions, database='convertible_bond'):
             password='123456',
             database=database
     ) as connection:
-        if not check_table_exists(connection, table):
-            return -1
+        # if not check_table_exists(connection, table):
+        #     return -1
 
-        with connection.cursor() as cursor:
-            # 执行查询语句
-            cursor.execute(query)
-            results = cursor.fetchall()
-            data = [row[0] for row in results]
+        try:
+            with connection.cursor() as cursor:
+                # 执行查询语句
+                cursor.execute(query)
+                results = cursor.fetchall()
+                data = [row[0] for row in results]
+        except mysql.connector.errors.ProgrammingError as e:
+            if e.errno == 1146:
+                # 数据表不存在
+                print(f"查询失败: {e}")
+                return -1
+            elif e.errno == 1054:
+                # 列不存在
+                print(f"查询失败: {e}")
+                return -2
+            else:
+                print(f"查询失败: {e}")
+                return -3
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
 
     return data
 
