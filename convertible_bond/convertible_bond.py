@@ -59,6 +59,16 @@ def calculate_math(current_date, column, conditions, model='median'):
         elif model == 'avg':
             # print('\n', data)
             return str(current_date), np.mean(data)
+        elif model == 'max':
+            return str(current_date), max(data)
+        elif model == 'min':
+            return str(current_date), min(data)
+        elif model == 'std_0':
+            # 有偏样本标准差
+            return str(current_date), np.std(data, ddof=0)
+        elif model == 'std_1':
+            # 无偏样本标准差
+            return str(current_date), np.std(data, ddof=1)
     except np.core._exceptions._UFuncNoLoopError as e:
         print('\n', e)
         print(data)
