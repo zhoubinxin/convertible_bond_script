@@ -2,8 +2,8 @@ import datetime
 
 from tqdm import tqdm
 
+from bond_day import BondDay
 from convertible_bond import convertible_bond as cb
-from convertible_bond import csv2mysql
 from convertible_bond import filehandler as fh
 from convertible_bond import mysqlhandler as mysql
 
@@ -14,20 +14,12 @@ def main():
     # 结束日期
     end_date = datetime.date(2023, 2, 3)
 
-    # calculate_ratio
-    #   ratio
-    # calculate_math:
-    #   median  计算中位数
-    #   avg     计算平均数
-    #   max     计算最大值   min 计算最小值
-    #   std_0   计算有偏样本标准差   std_1   计算无偏样本标准差
-    # is_complete
-    #   check   检查数据表是否完整
+    # 具体设置参考 配置.md
     ctype = "avg"
     # 使用 calculate_math 函数需要填入列名
     column = "涨跌幅(%)"
 
-    # 文件名
+    # 文件名（可选）
     file_name = ""
 
     # 筛选条件
@@ -74,7 +66,8 @@ def main():
         print("不存在方法：", ctype)
         return
 
-    csv2mysql.main()
+    # 更新数据
+    BondDay.update()
 
     total_days = (end_date - start_date).days + 1
     with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
