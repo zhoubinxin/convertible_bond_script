@@ -10,9 +10,9 @@ from convertible_bond import mysqlhandler as mysql
 
 def main():
     # 起始日期
-    start_date = datetime.date(2023, 2, 1)
+    start_date = datetime.date(2018, 1, 1)
     # 结束日期
-    end_date = datetime.date(2023, 2, 3)
+    end_date = datetime.date(2024, 3, 15)
 
     # calculate_ratio
     #   ratio
@@ -23,12 +23,12 @@ def main():
     #   std_0   计算有偏样本标准差   std_1   计算无偏样本标准差
     # is_complete
     #   check   检查数据表是否完整
-    ctype = "avg"
+    ctype = "ratio"
     # 使用 calculate_math 函数需要填入列名
-    column = "涨跌幅(%)"
+    column = "收盘价"
 
     # 文件名
-    file_name = ""
+    file_name = "平衡型型转债个数"
 
     # 筛选条件
     conditions = {
