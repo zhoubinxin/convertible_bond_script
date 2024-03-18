@@ -2,8 +2,8 @@ import datetime
 
 from tqdm import tqdm
 
+from bond_day import BondDay
 from convertible_bond import convertible_bond as cb
-from convertible_bond import csv2mysql
 from convertible_bond import filehandler as fh
 from convertible_bond import mysqlhandler as mysql
 
@@ -74,7 +74,7 @@ def main():
         print("不存在方法：", ctype)
         return
 
-    csv2mysql.main()
+    BondDay.update()
 
     total_days = (end_date - start_date).days + 1
     with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
