@@ -5,3 +5,5 @@
 .env
 /其他
 /Test.py
+*.json
+!config.json

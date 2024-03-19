@@ -3,14 +3,12 @@ import datetime
 from tqdm import tqdm
 
 from bond_day import BondDay
+from convertible_bond import convertible_bond as cb
+from convertible_bond import filehandler as fh
+from convertible_bond import mysqlhandler as mysql
 
 
-# from convertible_bond import convertible_bond as cb
-# from convertible_bond import filehandler as fh
-# from convertible_bond import mysqlhandler as mysql
-
-
-def main():
+def calculate():
     # 起始日期
     start_date = datetime.date(2023, 2, 1)
     # 结束日期
@@ -99,4 +97,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    calculate()

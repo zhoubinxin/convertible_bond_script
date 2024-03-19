@@ -1,4 +1,5 @@
-import datetime
+import json
+from datetime import datetime, timedelta
 
 from tqdm import tqdm
 
@@ -9,77 +10,60 @@ from convertible_bond import mysqlhandler as mysql
 
 
 def main():
-    # 起始日期
-    start_date = datetime.date(2018, 1, 1)
-    # 结束日期
-    end_date = datetime.date(2024, 3, 15)
+    config_list = [
+        'config.json'
+    ]
+    for config_file in config_list:
+        parse(config_file)
 
-    # calculate_ratio
-    #   ratio
-    # calculate_math:
-    #   median  计算中位数
-    #   avg     计算平均数
-    #   max     计算最大值   min 计算最小值
-    #   std_0   计算有偏样本标准差   std_1   计算无偏样本标准差
-    # is_complete
-    #   check   检查数据表是否完整
-    ctype = "ratio"
-    # 使用 calculate_math 函数需要填入列名
-    column = "收盘价"
+
+def parse(config_file):
+    # 读取JSON配置文件
+    with open(config_file, 'r') as file:
+        config = json.load(file)
+
+    # 起始日期
+    start_date_str = config['start_date']
+    start_date = datetime.strptime(start_date_str, "%Y%m%d")
+    # 结束日期
+    end_date_str = config["end_date"]
+    end_date = datetime.strptime(end_date_str, "%Y%m%d")
+
+    ctype = config["ctype"]
+    column = config["column"]
 
     # 文件名
-    file_name = "平衡型型转债个数"
+    file_name = config["file_name"]
 
     # 筛选条件
-    conditions = {
-        "main": [
-            "债券类型 = '可转债'",
-            "`纯债到期收益率(%)` > 3",
-            "((`转换价值` - `纯债价值`) / `纯债价值`) > 0.2"
-        ],
-        # 按 sort 进行排序，默认为升序，填 None 则不排序
-        "sort": "涨跌幅(%)",
-        # desc 表示降序
-        "sort_type": "",
-        # limit 表示限制返回的行数，-1 表示不限制
-        "limit": 10,
-        # 以上参数对 calculate_ratio 函数返回的转债总数不产生影响
+    conditions = config["conditions"]
+    if conditions["limit"] != -1:
+        print(f'仅返回前{conditions["limit"]}条数据')
 
-        "ratio_total": [
-            "债券类型 = '可转债'"
-        ]
-    }
+    update = config["update"]
 
-    name_list = {
-        "ratio": ("日期", "纯债到期收益率 > 3% 的转债个数", "转债总数"),
-        "median": ("日期", "中位数"),
-        "avg": ("日期", "平均数"),
-        "max": ("日期", "最大值"),
-        "min": ("日期", "最小值"),
-        "std_0": ("日期", "有偏样本标准差"),
-        "std_1": ("日期", "无偏样本标准差"),
-        "check": ("数据表", "缺失数据"),
-    }
+    column_name = config["column_name"]
 
     # 文件名附加日期
     if start_date == end_date:
-        excel_name = file_name + str(start_date)
+        excel_name = file_name + start_date_str
     else:
-        excel_name = file_name + str(start_date) + "~" + str(end_date)
+        excel_name = file_name + start_date_str + "~" + end_date_str
 
     # 设置列名
     try:
-        data_list = [name_list[ctype]]
+        data_list = [column_name[ctype]]
     except KeyError:
         print("不存在方法：", ctype)
         return
 
-    BondDay.update()
+    if update:
+        BondDay.update()
 
     total_days = (end_date - start_date).days + 1
     with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
         for current_date in range(total_days):
-            current_date = start_date + datetime.timedelta(days=current_date)
+            current_date = start_date + timedelta(days=current_date)
 
             str_date = current_date.strftime('%Y%m%d')
             pbar.set_postfix_str(str_date)
