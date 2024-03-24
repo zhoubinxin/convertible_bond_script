@@ -1,7 +1,6 @@
 .idea/
 *.xlsx
 /Test/
-.*/
 .env
 /其他
 /Test.py

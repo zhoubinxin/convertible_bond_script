@@ -1,0 +1,19 @@
+name: Push to Gitee
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Black list
+        uses: Yikun/hub-mirror-action@master
+        with:
+          src: github/Zhoubinxin
+          dst: gitee/PinHsin
+          dst_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          dst_token: ${{ secrets.GITEE_API }}
+          static_list: "convertible_bond_script"
