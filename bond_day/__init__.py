@@ -1,5 +1,6 @@
 from . import api
 from .bond import Bond
+from .bonddb import BondDB
 
 
 class BondDay(object):

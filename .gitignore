@@ -6,3 +6,4 @@
 /Test.py
 *.json
 !config.json
+*.db
