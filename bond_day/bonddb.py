@@ -9,12 +9,14 @@ Base = declarative_base()
 
 
 class BondDB(object):
+
     def __init__(self, db_path='sqlite:///convertible_bond.db'):
         self.db_path = db_path
 
-    def create_table(self):
+    @classmethod
+    def init(cls, db_path='sqlite:///convertible_bond.db'):
         # 建立SQLite数据库连接
-        engine = create_engine(self.db_path)
+        engine = create_engine(db_path)
 
         # 创建inspect对象
         inspector = inspect(engine)

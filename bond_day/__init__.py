@@ -23,6 +23,18 @@ class BondDay(object):
         cls.update_executed = True
 
     @classmethod
+    def db_init(cls):
+        """
+        初始化数据库
+
+        :return:
+        """
+        print('初始化数据库中...')
+        BondDB.init()
+        print('初始化完成')
+        cls.db_init_executed = True
+
+    @classmethod
     def calculate_ratio(cls, current_date, conditions):
         """
         计算比率
