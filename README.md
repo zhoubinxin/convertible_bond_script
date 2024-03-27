@@ -25,19 +25,11 @@ cd convertible_bond_script
 pip install -r requirements.txt
 ```
 
-4. 数据库
-   项目使用MySQL数据库，需提前安装
-
-5. 运行程序：
+4. 运行程序：
 
 ```bash
 python main.py
 ```
-
-## 项目目标
-
-- [ ] 从iFind和Wind获取可转债其他数据
-- [ ] 增加可视化界面
 
 ## 数据
 

@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import pandas as pd
@@ -96,6 +97,7 @@ if __name__ == "__main__":
             "债券类型 = '可转债'"
         ]
     }
-    data = BondDB.query('20180101', '码', conditions=conditions["main"],
+    bond_day = datetime.date.today()
+    data = BondDB.query(bond_day, '码', conditions=conditions["main"],
                         database='D:\Code\convertible_bond\convertible_bond_script\convertible_bond')
     print(data)

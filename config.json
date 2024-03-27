@@ -16,8 +16,8 @@
     ]
   },
   "column": "收盘价",
-  "file_name": "平衡型型转债个数",
-  "update": false,
+  "file_name": "",
+  "file_name_format": true,
   "column_name": {
     "ratio": [
       "日期",
@@ -47,10 +47,6 @@
     "std_1": [
       "日期",
       "无偏样本标准差"
-    ],
-    "check": [
-      "数据表",
-      "缺失数据"
     ]
   }
 }
