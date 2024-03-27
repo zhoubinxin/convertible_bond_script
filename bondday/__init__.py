@@ -1,5 +1,4 @@
 from . import api
-from .bond import Bond
 from .bonddb import BondDB
 
 
@@ -44,17 +43,17 @@ class BondDay(object):
         :return: 元组(日期, 筛选后剩余数量, 总数)
         """
         if not api.is_trade_day(current_date):
-            return str(current_date), None, None
+            return current_date.strftime('%Y-%m-%d'), None, None
 
         str_date = current_date.strftime('%Y%m%d')
 
         # 交易代码
-        code = mysql.get_data_from_mysql(str_date, "代码", conditions['ratio_total'])
+        code = BondDB.query(str_date, "代码", conditions['ratio_total'])
         if code == -1:
             print(f"\n{current_date} 数据缺失")
-            return str(current_date), None, None
+            return current_date.strftime('%Y-%m-%d'), None, None
         elif code:
             total = len(code)
-            data_remain = mysql.get_data_from_mysql(str_date, "代码", conditions)
+            data_remain = BondDB.query(str_date, "代码", conditions)
             remain = len(data_remain)
-            return str(current_date), remain, total
+            return current_date.strftime('%Y-%m-%d'), remain, total

@@ -107,3 +107,21 @@ def is_complete(current_date):
     if code != -1 and len(code) > 0:
         print(f"{current_date} 数据表不完整")
         return str(current_date), len(code)
+
+
+if __name__ == '__main__':
+    conditions = {
+        "main": [
+            "债券类型 = '可转债'",
+            "`纯债到期收益率(%)` > 3",
+            "((`转换价值` - `纯债价值`) / `纯债价值`) > 0.2"
+        ],
+        "sort": None,
+        "sort_type": "",
+        "limit": -1,
+        "ratio_total": [
+            "债券类型 = '可转债'"
+        ]
+    }
+    data = get_data_from_mysql('20180101', '代码', conditions=conditions["main"])
+    print(data)

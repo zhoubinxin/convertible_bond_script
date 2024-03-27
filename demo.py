@@ -1,11 +1,11 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from tqdm import tqdm
 
 from FileOperator import FileOperator
-from bond_day import BondDay
+from bondday import BondDay
 
 
 def main():
@@ -69,23 +69,23 @@ def parse(config_file):
     total_days = (end_date - start_date).days + 1
     with tqdm(total=total_days, desc="进度", dynamic_ncols=True) as pbar:
         for current_date in range(total_days):
-            # current_date = start_date + timedelta(days=current_date)
-            #
-            # str_date = current_date.strftime('%Y%m%d')
-            # pbar.set_postfix_str(str_date)
-            #
-            # # 计算数据
-            # if ctype == "ratio":
-            #     data_tuple = cb.calculate_ratio(current_date, conditions)
+            current_date = start_date + timedelta(days=current_date)
+
+            str_date = current_date.strftime('%Y%m%d')
+            pbar.set_postfix_str(str_date)
+
+            # 计算数据
+            if ctype == "ratio":
+                data_tuple = BondDay.calculate_ratio(current_date, conditions)
             # elif ctype == "check":
             #     data_tuple = mysql.is_complete(current_date)
             # else:
             #     if column == "":
             #         column = input("请输入列名：")
             #     data_tuple = cb.calculate_math(current_date, column, conditions, ctype)
-            #
-            # if data_tuple:
-            #     data_list.append(data_tuple)
+
+            if data_tuple:
+                data_list.append(data_tuple)
             pbar.update(1)
 
     # 保存数据到Excel
