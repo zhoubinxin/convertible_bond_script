@@ -43,7 +43,6 @@ class BondDay(object):
             print(f"\n{current_date}:{code}")
             return bond_day, None, None
 
-
     @classmethod
     def bond_math(cls, current_date, column, conditions, model='median'):
         """
@@ -64,12 +63,11 @@ class BondDay(object):
         # 交易代码
         data = BondDB.query(table_name, column, conditions)
 
-        if data < 0:
+        if isinstance(data, list) and len(data) == 0:
+            return bond_day, '-'
+        elif isinstance(data, int):
             print(f"\n{current_date}:{data}")
             return bond_day, None
-        # 判断数据是否为空
-        elif len(data) == 0:
-            return bond_day, '-'
 
         try:
             if model == 'median':
