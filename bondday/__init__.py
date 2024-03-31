@@ -34,14 +34,15 @@ class BondDay(object):
 
         # 交易代码
         code = BondDB.query(table_name, "代码", conditions['ratio_total'])
-        if code == -1:
-            print(f"\n{current_date} 数据缺失")
-            return bond_day, None, None
-        elif code:
+        if isinstance(code, list):
             total = len(code)
             data_remain = BondDB.query(table_name, "代码", conditions)
             remain = len(data_remain)
             return bond_day, remain, total
+        else:
+            print(f"\n{current_date}:{code}")
+            return bond_day, None, None
+
 
     @classmethod
     def bond_math(cls, current_date, column, conditions, model='median'):
@@ -62,8 +63,9 @@ class BondDay(object):
 
         # 交易代码
         data = BondDB.query(table_name, column, conditions)
-        if data == -1:
-            print(f"\n{current_date} 数据缺失")
+
+        if data < 0:
+            print(f"\n{current_date}:{data}")
             return bond_day, None
         # 判断数据是否为空
         elif len(data) == 0:

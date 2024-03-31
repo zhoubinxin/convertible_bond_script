@@ -11,7 +11,7 @@ from fileoperator import FileOperator
 def main():
     # 配置文件地址
     config_list = [
-
+        'config.json'
     ]
 
     # 配置文件目录
