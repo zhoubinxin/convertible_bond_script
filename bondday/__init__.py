@@ -5,6 +5,8 @@ from .bonddb import BondDB
 
 
 class BondDay(object):
+    db_init_executed = False
+
     @classmethod
     def db_init(cls):
         """
@@ -12,10 +14,11 @@ class BondDay(object):
 
         :return:
         """
-        print('初始化数据库中...')
-        BondDB.init()
-        print('初始化完成')
-        cls.db_init_executed = True
+        if not cls.db_init_executed:
+            print('初始化数据库中...')
+            BondDB.init()
+            print('初始化完成')
+            cls.db_init_executed = True
 
     @classmethod
     def ratio(cls, current_date, conditions):
@@ -40,7 +43,7 @@ class BondDay(object):
             remain = len(data_remain)
             return bond_day, remain, total
         else:
-            print(f"\n{current_date}:{code}")
+            print(f"\n{bond_day}:{code}")
             return bond_day, None, None
 
     @classmethod
@@ -66,7 +69,7 @@ class BondDay(object):
         if isinstance(data, list) and len(data) == 0:
             return bond_day, '-'
         elif isinstance(data, int):
-            print(f"\n{current_date}:{data}")
+            print(f"\n{bond_day}:{data}")
             return bond_day, None
 
         try:

@@ -41,7 +41,6 @@ class FileOperator:
 
                 # 保存DataFrame到Excel
                 df.to_excel(file_path, index=False)
-                print('数据保存成功')
                 break
             except Exception as e:
                 print(f"无法写入文件 '{excel_name}'.xlsx，请确保没有其他程序正在使用该文件。错误详情：{e}")

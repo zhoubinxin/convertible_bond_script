@@ -32,34 +32,35 @@ class BondDB(object):
 
         # 关闭数据库连接
         engine.dispose()
+        return True
 
     @classmethod
-    def query(cls, table, column, conditions, database='convertible_bond'):
+    def query(cls, table, column, sql_dict, database='convertible_bond'):
         # 建立SQLite数据库连接
         engine = create_engine(f'sqlite:///{database}.db')
 
         # 构建查询语句
         query = f"SELECT `{column}` FROM `{table}`"
 
-        if 'main' in conditions:
-            conditions['main'].append(f"`{column}` is not null")
-            query += " WHERE " + " AND ".join(conditions['main'])
+        if 'main' in sql_dict:
+            query += " WHERE " + " AND ".join(sql_dict['main'])
 
             # 排序
-            if 'sort' in conditions and conditions['sort'] is not None:
-                query += f" ORDER BY `{conditions['sort']}`"
-            if 'sort_type' in conditions and conditions['sort_type'] == 'desc':
+            if 'sort' in sql_dict and sql_dict['sort'] is not None:
+                query += f" ORDER BY `{sql_dict['sort']}`"
+            if 'sort_type' in sql_dict and sql_dict['sort_type'] == 'desc':
                 query += " desc"
 
             # 限制返回数量
-            if 'limit' in conditions and conditions['limit'] != -1:
-                if conditions['limit'] <= 0:
+            if 'limit' in sql_dict and sql_dict['limit'] != -1:
+                if sql_dict['limit'] <= 0:
                     print(" limit 必须大于 0")
                 else:
-                    query += f" LIMIT {conditions['limit']}"
+                    query += f" LIMIT {sql_dict['limit']}"
         else:
-            conditions.append(f"`{column}` is not null")
-            query += " WHERE " + " AND ".join(conditions)
+            query += " WHERE " + " AND ".join(sql_dict)
+
+        query += " AND " + f"`{column}` is not null"
 
         try:
             df = pd.read_sql_query(query, con=engine)
