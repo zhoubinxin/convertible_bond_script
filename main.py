@@ -11,7 +11,7 @@ from fileoperator import FileOperator
 def main():
     # 配置文件地址
     config_list = [
-        'config.json'
+
     ]
 
     # 配置文件目录
@@ -22,6 +22,7 @@ def main():
             config_list.append(os.path.join(src_dir, file))
 
     for config_file in config_list:
+        print(f'{config_file}')
         parse(config_file)
 
 
