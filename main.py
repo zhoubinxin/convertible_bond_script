@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 
+import requests
 from tqdm import tqdm
 
 from bondday import BondDay
@@ -21,9 +22,18 @@ def main():
         if file.endswith('.json'):
             config_list.append(os.path.join(src_dir, file))
 
+    # 错误监控
+    send_error = True
+
     for config_file in config_list:
         print(f'{config_file}')
-        parse(config_file)
+        try:
+            parse(config_file)
+        except Exception as e:
+            if send_error:
+                cf_worker(f'{config_file}\n' + str(e))
+            else:
+                print(e)
 
 
 def parse(config_file):
@@ -94,6 +104,26 @@ def parse(config_file):
     # 保存数据到Excel
     if len(data_list) > 1:
         FileOperator.save_to_excel(excel_name, data_list)
+
+
+def cf_worker(message, method='qywx', api_type='default', worker_url='https://qyapi.bxin.top/'):
+    # 构建POST请求的数据
+    data = {
+        'method': method,
+        'content': {
+            'type': api_type,
+            'message': message,
+        }
+    }
+
+    # 发送POST请求到Cloudflare Worker
+    response = requests.post(worker_url, json=data)
+
+    # 检查响应状态码
+    if response.ok:
+        print('Message sent successfully')
+    else:
+        print('Failed to send message')
 
 
 if __name__ == '__main__':

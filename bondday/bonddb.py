@@ -99,6 +99,5 @@ if __name__ == "__main__":
         ]
     }
     bond_day = datetime.date.today()
-    data = BondDB.query(bond_day, '码', conditions=conditions["main"],
-                        database='D:\Code\convertible_bond\convertible_bond_script\convertible_bond')
+    data = BondDB.query(bond_day, '码', conditions["main"], database='../convertible_bond')
     print(data)
