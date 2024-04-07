@@ -8,6 +8,8 @@ from tqdm import tqdm
 from bondday import BondDay
 from fileoperator import FileOperator
 
+remind = True
+
 
 def main():
     # 配置文件地址
@@ -17,6 +19,10 @@ def main():
 
     # 配置文件目录
     src_dir = 'config'
+
+    # 默认配置文件
+    default_config = 'default.json'
+
     file_list = os.listdir(src_dir)
     for file in file_list:
         if file.endswith('.json'):
@@ -27,8 +33,11 @@ def main():
 
     for config_file in config_list:
         print(f'{config_file}')
+        # 默认配置
+        with open(default_config, 'r', encoding='utf-8') as file:
+            sys_config = json.load(file)
         try:
-            parse(config_file)
+            parse(config_file, sys_config)
         except Exception as e:
             if send_error:
                 cf_worker(f'{config_file}\n' + str(e))
@@ -36,10 +45,26 @@ def main():
                 print(e)
 
 
-def parse(config_file):
+def parse(config_file, default_config):
     # 读取JSON配置文件
     with open(config_file, 'r', encoding='utf-8') as file:
         config = json.load(file)
+
+    original_config = config.copy()
+
+    # 合并默认配置和用户配置
+    config = {**default_config, **config}
+
+    global remind
+    # 检查是否修改
+    if original_config != config and remind:
+        # 询问是否继续
+        choice = input('配置已修改，是否继续？(y/n)')
+
+        if choice == 'y':
+            remind = False
+        else:
+            return
 
     # 起始日期
     start_date_str = config['start_date']
