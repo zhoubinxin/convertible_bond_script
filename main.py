@@ -106,7 +106,7 @@ def parse(config_file):
         FileOperator.save_to_excel(excel_name, data_list)
 
 
-def cf_worker(message, method='qywx', api_type='default', worker_url='https://qyapi.bxin.top/'):
+def cf_worker(message, method='qywx', api_type='default', worker_url='https://qyapi.bxin.top/msg'):
     # 构建POST请求的数据
     data = {
         'method': method,
