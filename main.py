@@ -50,21 +50,23 @@ def parse(config_file, default_config):
     with open(config_file, 'r', encoding='utf-8') as file:
         config = json.load(file)
 
-    original_config = config.copy()
-
-    # 合并默认配置和用户配置
-    config = {**default_config, **config}
-
     global remind
     # 检查是否修改
-    if original_config != config and remind:
-        # 询问是否继续
-        choice = input('配置已修改，是否继续？(y/n)')
+    if remind:
+        original_config = config.copy()
 
-        if choice == 'y':
-            remind = False
-        else:
-            return
+        config = {**default_config, **config}
+        if original_config != config:
+            # 询问是否继续
+            choice = input('配置已修改，是否继续？(y/n)')
+
+            if choice == 'y':
+                print('本次运行将不再提醒')
+                remind = False
+            else:
+                return
+    else:
+        config = {**default_config, **config}
 
     # 起始日期
     start_date_str = config['start_date']
