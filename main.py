@@ -131,14 +131,17 @@ def parse(config_file, default_config):
         FileOperator.save_to_excel(excel_name, data_list)
 
 
-def cf_worker(message, method='qywx', api_type='default', worker_url='https://qyapi.bxin.top/msg'):
+def cf_worker(message, method="qywx", api_type="default", msgtype="text", worker_url="https://qyapi.bxin.top/msg",
+              webhook=None):
     # 构建POST请求的数据
     data = {
-        'method': method,
-        'content': {
-            'type': api_type,
-            'message': message,
-        }
+        "method": method,
+        "content": {
+            "type": api_type,
+            "msgtype": msgtype,
+            "message": message,
+            "webhook": webhook,
+        },
     }
 
     # 发送POST请求到Cloudflare Worker
