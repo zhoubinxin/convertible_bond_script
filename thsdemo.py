@@ -16,8 +16,8 @@ def main():
     password = os.environ['THSPASS']
     ths = THS(username, password)
     # 数据周期
-    start_date = datetime.date(2021, 10, 18)
-    end_date = datetime.date(2021, 10, 18)
+    start_date = datetime.date(2024, 4, 17)
+    end_date = datetime.date(2024, 4, 17)
 
     for date in range((end_date - start_date).days + 1):
         date = start_date + datetime.timedelta(days=date)
@@ -72,6 +72,13 @@ def is_trade_day(date):
         if date.isoweekday() < 6:
             return True
     return False
+
+
+def test():
+    load_dotenv()
+    username = os.environ['THSUSER']
+    password = os.environ['THSPASS']
+    ths = THS(username, password)
 
 
 if __name__ == '__main__':
