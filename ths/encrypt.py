@@ -1,7 +1,9 @@
+import base64
 import hashlib
-import json
 
 import requests
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
 
 
 class ThsEncrypt(object):
@@ -10,6 +12,10 @@ class ThsEncrypt(object):
         self.password = password
 
     def get_cookie(self):
+        """
+        获取同花顺的cookie
+        :return: cookie:同花顺账户cookie
+        """
         username = self.encode(self.username)
         password = self.encode(self.hex_md5(self.password))
 
@@ -39,19 +45,26 @@ class ThsEncrypt(object):
 
         return cookies
 
-    def encode(self, b):
-        data = {
-            "key": b
-        }
+    def encode(self, string):
+        modulus = 'CB99A3A4891FFECEDD94F455C5C486B936D0A37247D750D299D66A711F5F7C1EF8C17EAFD2E1552081DFFD1F78966593D81A499B802B18B0D76EF1D74F217E3FD98E8E05A906245BEDD810557DFB8F653118E59293A08C1E51DDCFA2CC13251A5BE301B080A0C93A587CB71BAED18AEF9F1E27DA6877AFED6BC5649DB12DD021'
+        publicExponent = '10001'
+        return self.encrypt_encode(string, modulus, publicExponent)
 
-        # 设置请求头
-        headers = {
-            "Content-Type": "application/json"
-        }
+    def encrypt_encode(self, string, modulus, publicExponent):
+        rsa_key = RSA.construct((int(modulus, 16), int(publicExponent, 16)))
 
-        # 发送 POST 请求
-        response = requests.post("https://neoapi.bxin.top/ths", data=json.dumps(data), headers=headers)
-        return response.text
+        cipher = PKCS1_v1_5.new(rsa_key)
+
+        b_bytes = bytes(string, 'utf-8')
+        encrypted_bytes = cipher.encrypt(b_bytes)
+
+        if not encrypted_bytes:
+            raise ValueError("加密失败")
+
+        encrypted_hex = encrypted_bytes.hex()
+        encrypted_base64 = base64.b64encode(bytes.fromhex(encrypted_hex)).decode('utf-8')
+
+        return encrypted_base64
 
     def hex_md5(self, c):
         # 创建MD5哈希对象
@@ -64,7 +77,8 @@ class ThsEncrypt(object):
 
 def main():
     ths = ThsEncrypt('', '')
-    ths.get_cookie()
+    cookie = ths.get_cookie()
+    print(cookie)
 
 
 if __name__ == '__main__':
