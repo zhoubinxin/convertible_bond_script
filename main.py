@@ -40,7 +40,7 @@ def main():
             parse(config_file, sys_config)
         except Exception as e:
             if send_error:
-                cf_worker(f'{config_file}\n' + str(e))
+                cf_msg(f'{config_file}\n' + str(e))
             else:
                 print(e)
 
@@ -133,23 +133,17 @@ def parse(config_file, default_config):
         FileOperator.save_to_excel(excel_name, data_list)
 
 
-def cf_worker(message, method="qywx", api_type="default", msgtype="text", worker_url="https://qyapi.bxin.top/msg",
-              webhook=None):
-    # 构建POST请求的数据
+def cf_msg(message, method="qywx", webhook="H", type="text", worker_url="https://api.xbxin.com/msg", ):
     data = {
         "method": method,
         "content": {
-            "type": api_type,
-            "msgtype": msgtype,
-            "message": message,
             "webhook": webhook,
+            "type": type,
+            "message": message,
         },
     }
 
-    # 发送POST请求到Cloudflare Worker
-    response = requests.post(worker_url, json=data)
-
-    print(response.text)
+    requests.post(worker_url, json=data)
 
 
 if __name__ == '__main__':

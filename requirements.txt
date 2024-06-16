@@ -1,9 +1,11 @@
 chinesecalendar==1.9.1
-interval==1.0.0
+environs==11.0.0
 numpy==1.26.4
-pandas==2.2.1
+pandas==2.2.2
+pycryptodome==3.20.0
 python-dotenv==1.0.1
-Requests==2.31.0
-SQLAlchemy==2.0.28
-tqdm==4.66.2
+Requests==2.32.3
+SQLAlchemy==2.0.30
+tqdm==4.66.4
+webdav4==0.9.8
 webdavclient3==3.14.6
