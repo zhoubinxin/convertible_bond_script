@@ -4,8 +4,5 @@
 .env
 /其他
 /Test.py
-*.json
-!config.json
 *.db
-*.csv
 /TODO.md
