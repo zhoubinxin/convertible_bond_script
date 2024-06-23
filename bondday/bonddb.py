@@ -27,7 +27,10 @@ class BondDB(object):
                 # 检查数据库中是否已经存在相应的表
                 if not inspector.has_table(table_name):
                     # 如果数据库中不存在相应的表，则导入CSV文件内容
-                    df = pd.read_csv(os.path.join(folder_path, file), encoding='utf-8')
+                    try:
+                        df = pd.read_csv(os.path.join(folder_path, file), encoding='utf-8')
+                    except UnicodeDecodeError:
+                        df = pd.read_csv(os.path.join(folder_path, file), encoding='gbk')
                     df.to_sql(table_name, con=engine, if_exists='replace', index=False)
 
         # 关闭数据库连接
