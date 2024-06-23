@@ -162,7 +162,7 @@ def send_mail():
     env = Env()
     env.read_env()
     email_189 = env.json("EMAIL_189")
-    to_email = "pinhsin@163.com"
+    to_email = "chushankeji@163.com"
     from_email = email_189["name"]
     from_password = email_189["password"]
     subject = "债券数据"
