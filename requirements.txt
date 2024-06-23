@@ -9,3 +9,4 @@ Requests==2.32.3
 SQLAlchemy==2.0.30
 tqdm==4.66.4
 webdav4==0.9.8
+openpyxl

@@ -1,5 +1,3 @@
-import mimetypes
-import os
 import zipfile
 from datetime import datetime, timedelta
 
