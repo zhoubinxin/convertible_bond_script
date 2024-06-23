@@ -3,8 +3,8 @@ name: Get THS Data
 on:
   schedule:
     - cron: '0 5 * *  TUE-SAT'
-  watch:
-    types: started
+#  watch:
+#    types: started
 
 jobs:
   build:

@@ -21,7 +21,7 @@ class BondDay(object):
             cls.db_init_executed = True
 
     @classmethod
-    def ratio(cls, current_date, conditions):
+    def ratio(cls, current_date, conditions, database='convertible_bond'):
         """
         计算比率
 
@@ -36,10 +36,10 @@ class BondDay(object):
         table_name = current_date.strftime('%Y%m%d')
 
         # 交易代码
-        code = BondDB.query(table_name, "代码", conditions['ratio_total'])
+        code = BondDB.query(table_name, "代码", conditions['ratio_total'], database)
         if isinstance(code, list):
             total = len(code)
-            data_remain = BondDB.query(table_name, "代码", conditions)
+            data_remain = BondDB.query(table_name, "代码", conditions, database)
             remain = len(data_remain)
             return bond_day, remain, total
         else:
@@ -47,7 +47,7 @@ class BondDay(object):
             return bond_day, None, None
 
     @classmethod
-    def bond_math(cls, current_date, column, conditions, model='median'):
+    def bond_math(cls, current_date, column, conditions, model='median', database='convertible_bond'):
         """
         计算中位数、平均数
 
@@ -64,7 +64,7 @@ class BondDay(object):
         table_name = current_date.strftime('%Y%m%d')
 
         # 交易代码
-        data = BondDB.query(table_name, column, conditions)
+        data = BondDB.query(table_name, column, conditions, database)
 
         if isinstance(data, list) and len(data) == 0:
             return bond_day, '-'

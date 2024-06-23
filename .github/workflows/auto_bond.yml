@@ -1,0 +1,27 @@
+name: Get THS Data
+
+on:
+  schedule:
+    - cron: '0 5 * * 6'
+  watch:
+    types: started
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Python script
+        run: python main_quan.py
+        env:
+          EMAIL_189: ${{ secrets.EMAIL_189 }}

@@ -3,9 +3,6 @@ import time
 
 import pandas as pd
 
-from . import cloud
-from .cloud import CloudClient
-
 
 class FileOperator:
     def __init__(self, file_path):
@@ -53,7 +50,3 @@ class FileOperator:
                     print("写入文件失败")
                     print(data)
                     break
-
-    @classmethod
-    def upload(cls, local_file):
-        CloudClient.upload(local_file)
