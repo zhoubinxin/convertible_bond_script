@@ -1,4 +1,4 @@
-name: Get THS Data
+name: Auto Bond
 
 on:
   schedule:
