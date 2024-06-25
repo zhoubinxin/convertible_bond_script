@@ -1,8 +1,5 @@
 .idea/
 *.xlsx
-/Test/
+/test
 .env
-/其他
-/Test.py
 *.db
-/TODO.md
