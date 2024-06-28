@@ -30,7 +30,7 @@ class THS:
             data = response.json()
             return data
         else:
-            cf_msg(f"可转债: {response.json()}")
+            send_msg(f"可转债: {response.json()}")
             return None
 
     def get_access_token(self, retries=3, delay=5):
@@ -59,7 +59,7 @@ class THS:
                 response = requests.post(url=url, headers=headers)
                 response = json.loads(response.content)
                 if response['errorcode'] != 0:
-                    cf_msg(f"可转债：{response}")
+                    send_msg(f"可转债：{response}")
                     access_token = None
                 else:
                     access_token = response['data']['access_token']
@@ -70,7 +70,7 @@ class THS:
                 if attempt < retries:
                     sleep(delay)
                 else:
-                    cf_msg("可转债：获取access_token失败，请检查网络")
+                    send_msg("可转债：获取access_token失败，请检查网络")
                     return None
 
 
@@ -121,17 +121,15 @@ def is_trade_day(date):
     return False
 
 
-def cf_msg(message, method="qywx", webhook="H", type="text", worker_url="https://api.xbxin.com/msg", ):
+def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://api.xbxin.com/msg"):
     data = {
-        "method": method,
-        "content": {
-            "webhook": webhook,
-            "type": type,
-            "message": message,
-        },
+        "message": message,
+        "action": action,
+        "webhook": webhook,
+        "msg_type": msg_type,
     }
 
-    requests.post(worker_url, json=data)
+    requests.post(url, json=data)
 
 
 def main():
@@ -145,7 +143,7 @@ def main():
         if data is not None:
             save_to_csv(data, trade_day)
         else:
-            cf_msg("可转债：获取交易数据失败")
+            send_msg("可转债：获取交易数据失败")
 
 
 if __name__ == '__main__':

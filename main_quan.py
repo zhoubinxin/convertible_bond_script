@@ -61,7 +61,7 @@ def main():
             excel_list.append(excel_name)
         except Exception as e:
             if send_error:
-                cf_msg(f'{config_file}\n' + str(e))
+                send_msg(f'{config_file}\n' + str(e))
             else:
                 print(e)
 
@@ -196,9 +196,9 @@ def send_mail():
         server.login(from_email, from_password)
         server.send_message(msg)
         server.quit()
-        cf_msg("可转债：发送成功")
+        send_msg("可转债：发送成功")
     except Exception as e:
-        cf_msg(f"可转债：发送失败: {e}")
+        send_msg(f"可转债：发送失败: {e}")
 
 
 # 打包文件为压缩包
@@ -208,17 +208,15 @@ def create_zip(files, zip_name):
             zipf.write(file)
 
 
-def cf_msg(message, method="qywx", webhook="H", type="text", worker_url="https://api.xbxin.com/msg", ):
+def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://api.xbxin.com/msg"):
     data = {
-        "method": method,
-        "content": {
-            "webhook": webhook,
-            "type": type,
-            "message": message,
-        },
+        "message": message,
+        "action": action,
+        "webhook": webhook,
+        "msg_type": msg_type,
     }
 
-    requests.post(worker_url, json=data)
+    requests.post(url, json=data)
 
 
 if __name__ == '__main__':
