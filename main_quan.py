@@ -66,7 +66,7 @@ def main():
                 print(e)
 
     create_zip(excel_list, "data.zip")
-    send_mail()
+    # send_mail()
 
 
 def create_db(start_date, end_date):

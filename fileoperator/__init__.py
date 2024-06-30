@@ -29,12 +29,12 @@ class FileOperator:
                     # 如果文件存在，读取现有数据
                     df = pd.read_excel(file_path)
                     # 添加新的数据
-                    new_data_df = pd.DataFrame(data)
+                    new_data_df = pd.DataFrame(data[1:], columns=data[0])
                     df = pd.concat([df, new_data_df], ignore_index=True)
 
                 else:
                     # 如果文件不存在，创建新的DataFrame
-                    df = pd.DataFrame(data)
+                    df = pd.DataFrame(data[1:], columns=data[0])
 
                 # 保存DataFrame到Excel
                 df.to_excel(file_path, index=False)

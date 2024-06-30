@@ -37,18 +37,17 @@ class THS:
         env = Env()
         env.read_env()
         bx_token = env.str('BX_TOKEN')
-        worker_url = "https://api.bxin.top/ths"
+        worker_url = "https://api.bxin.top/kv"
         data = {
-            "method": "read",
-            "content": {
-                "token": bx_token
-            }
+            "action": "read",
+            "token": bx_token,
+            "key": "ths_token"
         }
 
         response = requests.post(worker_url, json=data)
 
         response = response.json()
-        refresh_token = response['msg']
+        refresh_token = response['data']['value']
 
         url = 'https://ft.10jqka.com.cn/api/v1/get_access_token'
         headers = {"ContentType": "application/json", "refresh_token": refresh_token}
@@ -133,7 +132,7 @@ def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://
 
 
 def main():
-    # today = datetime(2024, 6, 22)
+    # today = datetime(2024, 6, 28)
     today = datetime.now()
     trade_day = today - timedelta(days=1)
     if is_trade_day(trade_day):
