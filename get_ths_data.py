@@ -6,6 +6,7 @@ from time import sleep
 import requests
 from chinese_calendar import is_workday
 from environs import Env
+from sqlalchemy import create_engine, inspect
 
 
 class THS:
@@ -107,6 +108,24 @@ def save_to_csv(data, yesterday):
         csvwriter.writerows(desired_data)
 
 
+def save_to_db(data, trade_day):
+    env = Env()
+    env.read_env()
+    config = env.json('MYSQL')
+    engine = create_engine(
+        f"mysql+pymysql://{config['user']}:{config['password']}@{config['host']}:{config['port']}/{config['db']}")
+
+    # 创建inspect对象
+    inspector = inspect(engine)
+
+    if not inspector.has_table(trade_day):
+        data.to_sql(trade_day, con=engine, if_exists='replace', index=False)
+
+    # 关闭数据库连接
+    engine.dispose()
+    return True
+
+
 def is_trade_day(date):
     """
     判断是否是交易日
@@ -141,6 +160,10 @@ def main():
         data = ths.get_data()
         if data is not None:
             save_to_csv(data, trade_day)
+            try:
+                save_to_db(data, trade_day)
+            except Exception as e:
+                send_msg(f"可转债（数据库相关）：{e}")
         else:
             send_msg("可转债：获取交易数据失败")
 
