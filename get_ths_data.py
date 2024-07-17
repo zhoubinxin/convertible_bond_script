@@ -6,7 +6,7 @@ from time import sleep
 import requests
 from chinese_calendar import is_workday
 from environs import Env
-from sqlalchemy import create_engine, inspect
+import boto3
 
 
 class THS:
@@ -108,22 +108,36 @@ def save_to_csv(data, yesterday):
         csvwriter.writerows(desired_data)
 
 
-def save_to_db(data, trade_day):
+def upload_to_r2(trade_day):
     env = Env()
     env.read_env()
-    config = env.json('MYSQL')
-    engine = create_engine(
-        f"mysql+pymysql://{config['user']}:{config['password']}@{config['host']}:{config['port']}/{config['db']}")
+    cf = env.json('CF')
+    account_id = cf['account_id']
+    access_key_id = cf['access_key_id']
+    secret_access_key = cf['secret_access_key']
 
-    # 创建inspect对象
-    inspector = inspect(engine)
+    # 创建 S3 客户端
+    s3 = boto3.client(
+        's3',
+        region_name='auto',
+        endpoint_url=f'https://{account_id}.r2.cloudflarestorage.com',
+        aws_access_key_id=access_key_id,
+        aws_secret_access_key=secret_access_key
+    )
 
-    if not inspector.has_table(trade_day):
-        data.to_sql(trade_day, con=engine, if_exists='replace', index=False)
-
-    # 关闭数据库连接
-    engine.dispose()
-    return True
+    object_key = trade_day + '.csv'
+    file_path = f'data/{object_key}'
+    bucket_name = 'cloud'
+    with open(file_path, 'rb') as file:
+        s3.upload_fileobj(
+            Fileobj=file,
+            Bucket=bucket_name,
+            Key=f'bond/{object_key}',
+            ExtraArgs={
+                'ContentType': 'text/csv; charset=utf-8',
+                'ContentDisposition': f'attachment; filename={object_key}'
+            }
+        )
 
 
 def is_trade_day(date):
@@ -161,7 +175,7 @@ def main():
         if data is not None:
             save_to_csv(data, trade_day)
             try:
-                save_to_db(data, trade_day)
+                upload_to_r2(trade_day)
             except Exception as e:
                 send_msg(f"可转债（数据库相关）：{e}")
         else:
