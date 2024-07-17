@@ -27,6 +27,7 @@ jobs:
           BX_TOKEN: ${{ secrets.BX_TOKEN }}
           SENDER_EMAIL: ${{ secrets.SenderEmail }}
           SENDER_PASSWORD: ${{ secrets.SenderPassword }}
+          MYSQL: ${{ secrets.MYSQL }}
 
       - name: Git commit and push
         run: |
