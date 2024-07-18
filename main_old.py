@@ -18,7 +18,7 @@ def main():
     ]
 
     # 配置文件目录
-    src_dir = '../config'
+    src_dir = 'config'
 
     # 默认配置文件
     default_config = 'default.json'
