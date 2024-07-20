@@ -1,6 +1,6 @@
 # 定义共同的配置部分
 common: &common
-  ctype: "median"
+  action: "median"
   conditions: &common_conditions
     sort: null
     sort_type: ""
@@ -39,6 +39,7 @@ common: &common
 # 配置列表
 configurations:
   - name: "配置1"
+    action: "ratio"
     <<: *common
     conditions:
       <<: *common_conditions
