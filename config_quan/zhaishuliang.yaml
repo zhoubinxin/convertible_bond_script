@@ -2,7 +2,7 @@ ctype: "ratio"
 conditions:
   main:
     - "债券类型 = '可转债'"
-    - "((`转换价值` - `纯债价值`) / `纯债价值`) < 0.2"
+    - "((`转换价值` - `纯债价值`) / `纯债价值`) < -0.2"
   sort: null
   sort_type: ""
   limit: -1

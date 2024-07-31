@@ -3,3 +3,5 @@
 /tests
 .env
 *.db
+*.log
+*.json

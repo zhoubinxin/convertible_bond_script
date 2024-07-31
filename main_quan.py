@@ -1,3 +1,4 @@
+import time
 import zipfile
 from datetime import datetime, timedelta
 
@@ -162,43 +163,46 @@ def send_mail():
     env = Env()
     env.read_env()
     email_189 = env.json("EMAIL_189")
-    to_email = "chushankeji@163.com"
+    to_emails = ["chushankeji@163.com", "houin@189.cn"]
     from_email = email_189["name"]
     from_password = email_189["password"]
     subject = "债券数据"
     body = "债券数据"
     zip_file = "data.zip"
 
-    # 创建 MIMEMultipart 对象
-    msg = MIMEMultipart()
-    msg['From'] = from_email
-    msg['To'] = to_email
-    msg['Subject'] = subject
+    for to_email in to_emails:
+        # 创建 MIMEMultipart 对象
+        msg = MIMEMultipart()
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg['Subject'] = subject
 
-    # 添加邮件正文
-    msg.attach(MIMEText(body, 'plain'))
+        # 添加邮件正文
+        msg.attach(MIMEText(body, 'plain'))
 
-    # 添加压缩包附件
-    attachment = MIMEBase('application', 'zip')
-    with open(zip_file, 'rb') as f:
-        attachment.set_payload(f.read())
-    encoders.encode_base64(attachment)
-    attachment.add_header(
-        'Content-Disposition',
-        f'attachment; filename="{os.path.basename(zip_file)}"'
-    )
-    msg.attach(attachment)
+        # 添加压缩包附件
+        attachment = MIMEBase('application', 'zip')
+        with open(zip_file, 'rb') as f:
+            attachment.set_payload(f.read())
+        encoders.encode_base64(attachment)
+        attachment.add_header(
+            'Content-Disposition',
+            f'attachment; filename="{os.path.basename(zip_file)}"'
+        )
+        msg.attach(attachment)
 
-    # 连接到 SMTP 服务器并发送邮件
-    try:
-        server = smtplib.SMTP(email_189["host"], email_189["port"])
-        server.starttls()
-        server.login(from_email, from_password)
-        server.send_message(msg)
-        server.quit()
-        send_msg("可转债：发送成功")
-    except Exception as e:
-        send_msg(f"可转债：发送失败: {e}")
+        # 连接到 SMTP 服务器并发送邮件
+        try:
+            server = smtplib.SMTP(email_189["host"], email_189["port"])
+            server.starttls()
+            server.login(from_email, from_password)
+            server.send_message(msg)
+            server.quit()
+            print(f"邮件发送成功给 {to_email}")
+        except Exception as e:
+            print(f"邮件发送失败给 {to_email}: {e}")
+
+        time.sleep(1)
 
 
 # 打包文件为压缩包
