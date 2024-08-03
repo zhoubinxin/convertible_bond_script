@@ -38,7 +38,7 @@ class THS:
         env = Env()
         env.read_env()
         bx_token = env.str('BX_TOKEN')
-        worker_url = "https://api.bxin.top/kv"
+        worker_url = "https://api.xbxin.com/kv"
         data = {
             "action": "read",
             "token": bx_token,
