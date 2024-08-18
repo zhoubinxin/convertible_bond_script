@@ -24,4 +24,5 @@ jobs:
       - name: Run Python script
         run: python main_quan.py
         env:
+          BX_TOKEN: ${{ secrets.BX_TOKEN }}
           EMAIL_189: ${{ secrets.EMAIL_189 }}

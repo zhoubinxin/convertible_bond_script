@@ -154,6 +154,14 @@ def is_trade_day(date):
 
 
 def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://api.xbxin.com/msg"):
+    env = Env()
+    env.read_env()
+    token = env.str("BX_TOKEN")
+
+    headers = {
+        'Authorization': f'Bearer {token}',
+    }
+
     data = {
         "message": message,
         "action": action,
@@ -161,7 +169,7 @@ def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://
         "msg_type": msg_type,
     }
 
-    requests.post(url, json=data)
+    requests.post(url, json=data, headers=headers)
 
 
 def main():
