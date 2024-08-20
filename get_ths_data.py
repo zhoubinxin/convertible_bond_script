@@ -59,7 +59,7 @@ class THS:
                 response = requests.post(url=url, headers=headers)
                 response = json.loads(response.content)
                 if response['errorcode'] != 0:
-                    send_msg(f"可转债：{response}")
+                    send_msg(f"可转债：{response['errmsg']}")
                     access_token = None
                 else:
                     access_token = response['data']['access_token']
@@ -179,6 +179,9 @@ def main():
     if is_trade_day(trade_day):
         trade_day = trade_day.strftime("%Y%m%d")
         ths = THS(trade_day)
+        if ths.access_token is None:
+            print("获取access_token失败")
+            return
         data = ths.get_data()
         if data is not None:
             save_to_csv(data, trade_day)
