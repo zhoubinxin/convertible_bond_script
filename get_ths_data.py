@@ -37,18 +37,19 @@ class THS:
     def get_access_token(self, retries=3, delay=5):
         env = Env()
         env.read_env()
-        bx_token = env.str('BX_TOKEN')
-        worker_url = "https://api.xbxin.com/kv"
-        data = {
-            "action": "read",
-            "token": bx_token,
-            "key": "ths_token"
+        ths_user = env.json('THS_USER')
+
+        baseurl = 'https://api.bxin.top/ths'
+        payload = {
+            'action': 'rt',
+            'username': ths_user['username'],
+            'password': ths_user['password']
         }
 
-        response = requests.post(worker_url, json=data)
+        response = requests.post(baseurl, json=payload)
 
         response = response.json()
-        refresh_token = response['data']['value']
+        refresh_token = response['data']['refresh_token']
 
         url = 'https://ft.10jqka.com.cn/api/v1/get_access_token'
         headers = {"ContentType": "application/json", "refresh_token": refresh_token}

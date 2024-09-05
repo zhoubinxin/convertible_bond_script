@@ -28,6 +28,7 @@ jobs:
           SENDER_EMAIL: ${{ secrets.SenderEmail }}
           SENDER_PASSWORD: ${{ secrets.SenderPassword }}
           CF: ${{ secrets.CF }}
+          THS_USER: ${{ secrets.THS_USER }}
 
       - name: Git commit and push
         run: |
