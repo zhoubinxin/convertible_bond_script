@@ -49,7 +49,7 @@ class THS:
         response = requests.post(baseurl, json=payload)
 
         response = response.json()
-        refresh_token = response['data']['refresh_token']
+        refresh_token = response['token']['data']['refresh_token']
 
         url = 'https://ft.10jqka.com.cn/api/v1/get_access_token'
         headers = {"ContentType": "application/json", "refresh_token": refresh_token}
