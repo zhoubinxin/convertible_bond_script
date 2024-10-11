@@ -212,7 +212,8 @@ def create_zip(files, zip_name):
             zipf.write(file)
 
 
-def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://api.xbxin.com/msg"):
+def send_msg(content):
+    url = "https://api.xbxin.com/msg/admin/corp"
     env = Env()
     env.read_env()
     token = env.str("BX_TOKEN")
@@ -222,10 +223,9 @@ def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://
     }
 
     data = {
-        "message": message,
-        "action": action,
-        "webhook": webhook,
-        "msg_type": msg_type,
+        "title": "天翼云盘",
+        "desc": "签到",
+        "content": content
     }
 
     requests.post(url, json=data, headers=headers)

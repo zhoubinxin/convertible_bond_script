@@ -53,7 +53,7 @@ class THS:
     def get_access_token(retries=3, delay=5):
         ths_user = env.json('THS_USER')
 
-        baseurl = 'https://api.bxin.top/ths'
+        baseurl = 'https://api.xbxin.com/ths/token'
         payload = {
             'action': 'rt',
             'username': ths_user['username'],
@@ -63,8 +63,7 @@ class THS:
         response = requests.post(baseurl, json=payload)
 
         response = response.json()
-        refresh_token = response['token']['data']['refresh_token']
-
+        refresh_token = response['data']['refresh_token']
         url = 'https://ft.10jqka.com.cn/api/v1/get_access_token'
         headers = {"ContentType": "application/json", "refresh_token": refresh_token}
 
@@ -159,7 +158,8 @@ def is_trade_day(date):
     return False
 
 
-def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://api.xbxin.com/msg"):
+def send_msg(content):
+    url = "https://api.xbxin.com/msg/admin/corp"
     token = env.str("BX_TOKEN")
 
     headers = {
@@ -167,10 +167,9 @@ def send_msg(message, action="qywx", webhook="H", msg_type="text", url="https://
     }
 
     data = {
-        "message": message,
-        "action": action,
-        "webhook": webhook,
-        "msg_type": msg_type,
+        "title": "同花顺",
+        "desc": "log",
+        "content": content
     }
 
     requests.post(url, json=data, headers=headers)
