@@ -62,6 +62,10 @@ class THS:
 
         response = requests.post(baseurl, json=payload)
 
+        if response.status_code != 200:
+            send_msg(f"可转债：{response.json()['data']['error']}")
+            return None
+
         response = response.json()
         refresh_token = response['data']['refresh_token']
         url = 'https://ft.10jqka.com.cn/api/v1/get_access_token'
@@ -176,7 +180,7 @@ def send_msg(content):
 
 
 def main():
-    # today = datetime(2024, 9, 12)
+    # today = datetime(2024, 11, 22)
     today = datetime.now()
     trade_day = today - timedelta(days=1)
     if is_trade_day(trade_day):
@@ -216,7 +220,7 @@ def main():
             ]
         }
         basic_data = ths.get_basic_data(payload)
-        print(basic_data)
+        # print(basic_data)
         save_to_csv(data_pool, basic_data, trade_day)
 
         try:
