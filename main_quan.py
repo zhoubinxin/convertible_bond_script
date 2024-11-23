@@ -223,8 +223,8 @@ def send_msg(content):
     }
 
     data = {
-        "title": "天翼云盘",
-        "desc": "签到",
+        "title": "可转债",
+        "desc": "log",
         "content": content
     }
 
