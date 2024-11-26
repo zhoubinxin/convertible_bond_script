@@ -36,5 +36,5 @@ jobs:
           git config --global user.name "GitHub Action"
           git pull
           git add -A
-          git commit -m "ci: update data (automatically)" || exit 0
+          git commit -m "👷ci: update data (automatically)" || exit 0
           git push
